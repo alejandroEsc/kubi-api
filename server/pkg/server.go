@@ -17,13 +17,9 @@ type clusterServer struct {
 }
 
 func (s *clusterServer) Create(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	err, clusterOpts, providerOpts := parseClusterDefinition(cd)
-	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
-		return nil, err
-	}
+	clusterOpts, providerOpts := parseClusterDefinition(cd)
 
-	err, provider := GetProvider(providerOpts, clusterOpts)
+	provider, err := getProvider(providerOpts, clusterOpts)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
@@ -34,13 +30,9 @@ func (s *clusterServer) Create(c context.Context, cd *api.ClusterDefinition) (*a
 }
 
 func (s *clusterServer) Apply(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	err, clusterOpts, providerOpts := parseClusterDefinition(cd)
-	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
-		return nil, err
-	}
+	clusterOpts, providerOpts := parseClusterDefinition(cd)
 
-	err, provider := GetProvider(providerOpts, clusterOpts)
+	provider, err := getProvider(providerOpts, clusterOpts)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
@@ -51,13 +43,9 @@ func (s *clusterServer) Apply(c context.Context, cd *api.ClusterDefinition) (*ap
 }
 
 func (s *clusterServer) Delete(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	err, clusterOpts, providerOpts := parseClusterDefinition(cd)
-	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
-		return nil, err
-	}
+	clusterOpts, providerOpts := parseClusterDefinition(cd)
 
-	err, provider := GetProvider(providerOpts, clusterOpts)
+	provider, err := getProvider(providerOpts, clusterOpts)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
@@ -66,6 +54,7 @@ func (s *clusterServer) Delete(c context.Context, cd *api.ClusterDefinition) (*a
 	return provider.delete()
 }
 
+// Start the server here.
 func Start(addr string, gracefulStop chan os.Signal) error {
 	var err error
 	log.Print("starting server")

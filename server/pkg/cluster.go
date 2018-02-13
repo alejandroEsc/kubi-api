@@ -4,45 +4,41 @@ import (
 	api "github.com/alejandroEsc/cluster-apis/api"
 )
 
-type ClusterOptions struct {
+type clusterOptions struct {
 	Name              string
 	CloudProviderName string
-	CloudId           string
+	CloudID           string
 }
 
-type ClusterStatus struct {
+type clusterStatus struct {
 	Code int64
 	Msg  string
 }
 
 var (
 	// find another name for initial uncreated state. (zero)
-	UnCreated = ClusterStatus{0, "uncreated"}
-	Created   = ClusterStatus{1, "created"}
-	Applied   = ClusterStatus{2, "applied"}
-	Deleted   = ClusterStatus{3, "deleted"}
+	unCreated = clusterStatus{0, "uncreated"}
+	created   = clusterStatus{1, "created"}
+	applied   = clusterStatus{2, "applied"}
+	deleted   = clusterStatus{3, "deleted"}
 )
 
-func (c *ClusterStatus) createClusterStatusMsg() *api.ClusterStatusMsg {
+func (c *clusterStatus) createClusterStatusMsg() *api.ClusterStatusMsg {
 	return &api.ClusterStatusMsg{Status: c.Msg, Code: c.Code}
 }
 
-func parseClusterDefinition(a *api.ClusterDefinition) (error, ClusterOptions, ProviderOptions) {
-	var providerOpts ProviderOptions
-	var error error
-	var clusterOpts ClusterOptions
-
-	clusterOpts = ClusterOptions{
+func parseClusterDefinition(a *api.ClusterDefinition) (clusterOptions, ProviderOptions) {
+	clusterOpts := clusterOptions{
 		Name:              a.ClusterConfigs.Name,
 		CloudProviderName: a.ClusterConfigs.CloudProviderName,
-		CloudId:           a.CloudId,
+		CloudID:           a.CloudID,
 	}
 
-	providerOpts = ProviderOptions{
+	providerOpts := ProviderOptions{
 		Name:              a.ClusterProvider,
 		AutoFetchProvider: a.AutoFetchClusterProvider,
 		StorePath:         a.ProviderStorePath,
 	}
 
-	return error, clusterOpts, providerOpts
+	return clusterOpts, providerOpts
 }

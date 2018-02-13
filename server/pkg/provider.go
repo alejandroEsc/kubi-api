@@ -8,25 +8,27 @@ import (
 	api "github.com/alejandroEsc/cluster-apis/api"
 )
 
+// ProviderOptions to pass on to a cluster provider
 type ProviderOptions struct {
 	Name              string
 	AutoFetchProvider bool
 	StorePath         string
 }
 
-func GetProvider(p ProviderOptions, c ClusterOptions) (error, Provider) {
+func getProvider(p ProviderOptions, c clusterOptions) (Provider, error) {
 	switch p.Name {
 	case "kubicorn":
 		log.Println("provider: kubicorn")
-		return nil, NewKubicornProvider(p, c)
+		return newKubicornProvider(p, c), nil
 	case "kubicorn_cli":
 		log.Println("provider: kubicorn_cli")
-		return nil, NewKubicornProviderCLI(p, c)
+		return newKubicornProviderCLI(p, c), nil
 	default:
-		return fmt.Errorf("could not find provider for %s.", p.Name), nil
+		return nil, fmt.Errorf("could not find provider for %s", p.Name)
 	}
 }
 
+// Provider is cluster provider object
 type Provider interface {
 	apply() (*api.ClusterStatusMsg, error)
 	create() (*api.ClusterStatusMsg, error)

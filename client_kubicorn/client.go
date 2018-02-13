@@ -27,7 +27,7 @@ func createClusterDefinition() *api.ClusterDefinition {
 		AutoFetchClusterProvider: true,
 		ClusterConfigs:           cs,
 		ProviderStorePath:        storePath,
-		CloudId:                  ""}
+		CloudID:                  ""}
 
 	return &cd
 }
@@ -71,7 +71,7 @@ func runCommandPrintOutput(cmd string) error {
 		log.Printf("found error attempting command: %s", err)
 	}
 
-	log.Printf(".. done", cmd)
+	log.Printf(".. done")
 	return err
 }
 
@@ -86,7 +86,7 @@ func main() {
 
 	opts = append(opts, grpc.WithInsecure())
 
-	step, destroyAll := configs.ParseClientEnvVars()
+	step, _ := configs.ParseClientEnvVars()
 
 	conn, err := grpc.Dial(configs.FmtAddress(address, port), opts...)
 	if err != nil {
@@ -113,10 +113,6 @@ func main() {
 		err = runDoDelete(client)
 		if err != nil {
 			log.Printf("got an error message: %s", err)
-		}
-
-		if destroyAll {
-			runCommandPrintOutput("rm -rf _state")
 		}
 	default:
 		log.Printf("the command %s is not a valid task.", step)

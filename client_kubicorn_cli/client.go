@@ -30,7 +30,7 @@ func runDoCreate(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	log.Printf("reply message: %+v", r)
 	return err
 }
 
@@ -40,7 +40,7 @@ func runDoApply(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	log.Printf("reply message: %+v", r)
 	return err
 }
 
@@ -50,7 +50,7 @@ func runDoDelete(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	log.Printf("reply message: %+v", r)
 	return err
 }
 
@@ -63,7 +63,7 @@ func runCommandPrintOutput(cmd string) error {
 		log.Printf("found error attempting command: %s", err)
 	}
 
-	log.Printf(".. done", cmd)
+	log.Print(".. done")
 	return err
 }
 
@@ -108,7 +108,10 @@ func main() {
 		}
 
 		if destroyAll {
-			runCommandPrintOutput("rm -rf _state")
+			err = runCommandPrintOutput("rm -rf _state")
+			if err != nil {
+				log.Printf("got an error message: %s", err)
+			}
 		}
 	default:
 		log.Printf("the command %s is not a valid task.", step)

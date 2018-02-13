@@ -35,7 +35,7 @@ message ClusterDefinition {
     ClusterConfigs clusterConfigs = 2;
     bool autoFetchClusterProvider = 3;
     string providerStorePath = 4;
-    string CloudId = 5;
+    string CloudID = 5;
 
 }
 

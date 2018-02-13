@@ -10,27 +10,28 @@ import (
 
 type kubicornCLI struct {
 	providerOpts ProviderOptions
-	clusterOpts  ClusterOptions
-	status       ClusterStatus
+	clusterOpts  clusterOptions
+	status       clusterStatus
 }
 
 var (
 	errorRevertState = "cluster is in state: %s, we cannot revert to state: %s"
 	errorReplayState = "cluster is already in state: %s, cannot replay state"
+	awsCloudProvider = "aws"
 )
 
-func NewKubicornProviderCLI(p ProviderOptions, c ClusterOptions) *kubicornCLI {
+func newKubicornProviderCLI(p ProviderOptions, c clusterOptions) *kubicornCLI {
 	return &kubicornCLI{providerOpts: p,
 		clusterOpts: c,
-		status:      UnCreated}
+		status:      unCreated}
 }
 
 func (k *kubicornCLI) apply() (*clusteror.ClusterStatusMsg, error) {
-	if k.status.Code > Applied.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Applied.Msg)
+	if k.status.Code > applied.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, applied.Msg)
 	}
 
-	if k.status.Code == Applied.Code {
+	if k.status.Code == applied.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -40,17 +41,17 @@ func (k *kubicornCLI) apply() (*clusteror.ClusterStatusMsg, error) {
 		return nil, err
 	}
 
-	k.status = Applied
+	k.status = applied
 
 	return k.status.createClusterStatusMsg(), nil
 }
 
 func (k *kubicornCLI) create() (*clusteror.ClusterStatusMsg, error) {
-	if k.status.Code > Created.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Created.Msg)
+	if k.status.Code > created.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, created.Msg)
 	}
 
-	if k.status.Code == Created.Code {
+	if k.status.Code == created.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -60,17 +61,17 @@ func (k *kubicornCLI) create() (*clusteror.ClusterStatusMsg, error) {
 		return nil, err
 	}
 
-	k.status = Created
+	k.status = created
 
 	return k.status.createClusterStatusMsg(), nil
 }
 
 func (k *kubicornCLI) delete() (*clusteror.ClusterStatusMsg, error) {
-	if k.status.Code > Deleted.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Deleted.Msg)
+	if k.status.Code > deleted.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, deleted.Msg)
 	}
 
-	if k.status.Code == Deleted.Code {
+	if k.status.Code == deleted.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -80,7 +81,7 @@ func (k *kubicornCLI) delete() (*clusteror.ClusterStatusMsg, error) {
 		return nil, err
 	}
 
-	k.status = Deleted
+	k.status = deleted
 	log.Print("done")
 
 	return k.status.createClusterStatusMsg(), nil

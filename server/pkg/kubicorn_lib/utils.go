@@ -22,11 +22,12 @@ import (
 	"github.com/kris-nova/kubicorn/apis/cluster"
 )
 
+// ExpandPath formats path to be used for cluster state
 func ExpandPath(path string) string {
 	if path == "." {
 		wd, err := os.Getwd()
 		if err != nil {
-			log.Print("Unable to get current working directory: %v", err)
+			log.Printf("Unable to get current working directory: %v", err)
 			return ""
 		}
 		path = wd
@@ -36,7 +37,7 @@ func ExpandPath(path string) string {
 		if homeVar == "" {
 			homeUser, err := user.Current()
 			if err != nil {
-				log.Print("Unable to use user.Current() for user. Maybe a cross compile issue: %v", err)
+				log.Printf("Unable to use user.Current() for user. Maybe a cross compile issue: %v", err)
 				return ""
 			}
 			path = homeUser.HomeDir
@@ -45,6 +46,7 @@ func ExpandPath(path string) string {
 	return path
 }
 
+// ClusterStorer cluster store object
 type ClusterStorer interface {
 	Exists() bool
 	ReadStore() ([]byte, error)

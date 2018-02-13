@@ -26,16 +26,18 @@ import (
 	gg "github.com/tcnksm/go-gitconfig"
 )
 
+// Options is kubicorns options used iun cli
 type Options struct {
 	StateStore     string
 	StateStorePath string
 	Name           string
-	CloudId        string
+	CloudID        string
 	Set            string
 	AwsProfile     string
 	GitRemote      string
 }
 
+// NewStateStore is used to create a ClusterStorer object
 func (options Options) NewStateStore() (ClusterStorer, error) {
 	var stateStore ClusterStorer
 
@@ -49,7 +51,7 @@ func (options Options) NewStateStore() (ClusterStorer, error) {
 	case "git":
 		log.Print("Selected [git] state store")
 		if options.GitRemote == "" {
-			return nil, errors.New("Empty GitRemote url. Must specify the link to the remote git repo.")
+			return nil, errors.New("empty GitRemote url. Must specify the link to the remote git repo")
 		}
 		user, _ := gg.Global("user.name")
 		email, _ := gg.Email()
@@ -70,7 +72,7 @@ func (options Options) NewStateStore() (ClusterStorer, error) {
 			ClusterName: options.Name,
 		})
 	default:
-		return nil, fmt.Errorf("State store [%s] has an invalid type [%s].", options.Name, options.StateStore)
+		return nil, fmt.Errorf("state store [%s] has an invalid type [%s]", options.Name, options.StateStore)
 	}
 
 	return stateStore, nil

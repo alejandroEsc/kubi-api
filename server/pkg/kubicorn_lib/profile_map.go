@@ -16,6 +16,7 @@ type profileMap struct {
 	Description string
 }
 
+// ProfileMapIndexed is a map, maps cloud providers with their profile functions.
 var ProfileMapIndexed = map[string]profileMap{
 	"azure": {
 		ProfileFunc: azure.NewUbuntuCluster,

@@ -19,25 +19,25 @@ import (
 
 type kubicorn struct {
 	providerOpts ProviderOptions
-	clusterOpts  ClusterOptions
-	status       ClusterStatus
+	clusterOpts  clusterOptions
+	status       clusterStatus
 }
 
-func NewKubicornProvider(p ProviderOptions, c ClusterOptions) *kubicorn {
+func newKubicornProvider(p ProviderOptions, c clusterOptions) *kubicorn {
 	return &kubicorn{providerOpts: p,
 		clusterOpts: c,
-		status:      UnCreated}
+		status:      unCreated}
 }
 
 func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[applying] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
-	if k.status.Code > Applied.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Applied.Msg)
+	if k.status.Code > applied.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, applied.Msg)
 	}
 
-	if k.status.Code == Applied.Code {
+	if k.status.Code == applied.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 	var cluster *cluster.Cluster
@@ -64,7 +64,7 @@ func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
 
 	runtimeParams := &pkg.RuntimeParameters{}
 
-	if k.clusterOpts.CloudProviderName == "aws" {
+	if k.clusterOpts.CloudProviderName == awsCloudProvider {
 		runtimeParams.AwsProfile = "default"
 	}
 
@@ -119,7 +119,7 @@ func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
 	privKeyPath := strings.Replace(cluster.SSH.PublicKeyPath, ".pub", "", 1)
 	log.Printf("You can SSH into your cluster ssh -i %s %s@%s", privKeyPath, reconciled.SSH.User, reconciled.KubernetesAPI.Endpoint)
 
-	k.status = Applied
+	k.status = applied
 
 	return k.status.createClusterStatusMsg(), nil
 }
@@ -128,11 +128,11 @@ func (k *kubicorn) create() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[creating] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
-	if k.status.Code > Created.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Created.Msg)
+	if k.status.Code > created.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, created.Msg)
 	}
 
-	if k.status.Code == Created.Code {
+	if k.status.Code == created.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -145,10 +145,10 @@ func (k *kubicorn) create() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Invalid cloud provider [%s]", k.clusterOpts.CloudProviderName)
 	}
 
-	if newCluster.Cloud == cluster.CloudGoogle && k.clusterOpts.CloudId == "" {
+	if newCluster.Cloud == cluster.CloudGoogle && k.clusterOpts.CloudID == "" {
 		return nil, fmt.Errorf("CloudID is required for google cloud. Please set it to your project ID")
 	}
-	newCluster.CloudId = k.clusterOpts.CloudId
+	newCluster.CloudId = k.clusterOpts.CloudID
 
 	// Expand state store path
 	options.StateStorePath = kubi.ExpandPath(k.providerOpts.StorePath)
@@ -167,7 +167,7 @@ func (k *kubicorn) create() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to init state store: %v", err)
 	}
 
-	k.status = Created
+	k.status = created
 	return k.status.createClusterStatusMsg(), nil
 }
 
@@ -179,11 +179,11 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 	var acluster *cluster.Cluster
 	var deleteCluster *cluster.Cluster
 
-	if k.status.Code > Deleted.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, Deleted.Msg)
+	if k.status.Code > deleted.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, deleted.Msg)
 	}
 
-	if k.status.Code == Deleted.Code {
+	if k.status.Code == deleted.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -205,7 +205,7 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 
 	var rp pkg.RuntimeParameters
 	switch k.clusterOpts.CloudProviderName {
-	case "aws":
+	case awsCloudProvider:
 		rp = pkg.RuntimeParameters{AwsProfile: "default"}
 	}
 
@@ -234,6 +234,6 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to remove state store for cluster [%s]: %v", options.Name, err)
 	}
 
-	k.status = Deleted
+	k.status = deleted
 	return k.status.createClusterStatusMsg(), nil
 }

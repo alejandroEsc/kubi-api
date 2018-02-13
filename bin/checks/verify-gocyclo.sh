@@ -21,5 +21,5 @@ source "${ROOT}/bin/common.sh"
 
 
 for gofile in $(valid_go_files); do
-  gocyclo -over 10 "$gofile"
+  gocyclo -over 15 "$gofile"
 done
