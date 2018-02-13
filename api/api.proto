@@ -1,0 +1,52 @@
+syntax = "proto3";
+package clusteror;
+
+
+//import "google/api/annotations.proto";
+
+
+service ClusterCreator {
+
+    rpc Create(ClusterDefinition) returns (ClusterStatusMsg) {
+//        option (google.api.http) = {
+//            post : "/v1/create"
+//            body: "*"
+//        };
+    }
+
+    rpc Apply(ClusterDefinition) returns (ClusterStatusMsg) {
+//        option (google.api.http) = {
+//            post : "/v1/apply"
+//            body: "*"
+//        };
+    }
+
+    rpc Delete(ClusterDefinition) returns (ClusterStatusMsg){
+//        option (google.api.http) = {
+//            post : "/v1/delete"
+//            body: "*"
+//        };
+    }
+
+}
+
+message ClusterDefinition {
+    string clusterProvider = 1;
+    ClusterConfigs clusterConfigs = 2;
+    bool autoFetchClusterProvider = 3;
+    string providerStorePath = 4;
+    string CloudId = 5;
+
+}
+
+
+message ClusterConfigs {
+    string name = 1;
+    string cloudProviderName = 2;
+
+}
+
+message ClusterStatusMsg {
+    string status = 1;
+    int64 code = 2;
+}
