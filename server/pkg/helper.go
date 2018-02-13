@@ -1,9 +1,9 @@
 package server
 
 import (
-    "fmt"
+	"fmt"
 )
 
-func FmtAddress(address string , port int ) string {
-    return fmt.Sprintf("%s:%d", address, port)
+func FmtAddress(address string, port int) string {
+	return fmt.Sprintf("%s:%d", address, port)
 }

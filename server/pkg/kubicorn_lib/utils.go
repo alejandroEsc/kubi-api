@@ -15,43 +15,42 @@ package kubicornlib
 // limitations under the License.
 
 import (
-    "log"
-    "os"
-    "os/user"
-    "github.com/kris-nova/kubicorn/apis/cluster"
+	"log"
+	"os"
+	"os/user"
+
+	"github.com/kris-nova/kubicorn/apis/cluster"
 )
 
-
-
 func ExpandPath(path string) string {
-    if path == "." {
-        wd, err := os.Getwd()
-        if err != nil {
-            log.Print("Unable to get current working directory: %v", err)
-            return ""
-        }
-        path = wd
-    }
-    if path == "~" {
-        homeVar := os.Getenv("HOME")
-        if homeVar == "" {
-            homeUser, err := user.Current()
-            if err != nil {
-                log.Print("Unable to use user.Current() for user. Maybe a cross compile issue: %v", err)
-                return ""
-            }
-            path = homeUser.HomeDir
-        }
-    }
-    return path
+	if path == "." {
+		wd, err := os.Getwd()
+		if err != nil {
+			log.Print("Unable to get current working directory: %v", err)
+			return ""
+		}
+		path = wd
+	}
+	if path == "~" {
+		homeVar := os.Getenv("HOME")
+		if homeVar == "" {
+			homeUser, err := user.Current()
+			if err != nil {
+				log.Print("Unable to use user.Current() for user. Maybe a cross compile issue: %v", err)
+				return ""
+			}
+			path = homeUser.HomeDir
+		}
+	}
+	return path
 }
 
 type ClusterStorer interface {
-    Exists() bool
-    ReadStore() ([]byte, error)
-    BytesToCluster(bytes []byte) (*cluster.Cluster, error)
-    Commit(cluster *cluster.Cluster) error
-    Destroy() error
-    GetCluster() (*cluster.Cluster, error)
-    List() ([]string, error)
+	Exists() bool
+	ReadStore() ([]byte, error)
+	BytesToCluster(bytes []byte) (*cluster.Cluster, error)
+	Commit(cluster *cluster.Cluster) error
+	Destroy() error
+	GetCluster() (*cluster.Cluster, error)
+	List() ([]string, error)
 }

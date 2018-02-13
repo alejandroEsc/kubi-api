@@ -6,11 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"golang.org/x/net/context"
 	s "github.com/alejandroEsc/cluster-apis/server/pkg"
+	"golang.org/x/net/context"
 )
-
-
 
 func main() {
 	ctx := context.Background()
@@ -34,6 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to start server: %s", err)
 	} else {
-        log.Printf("server started at: %s", s.FmtAddress(address, port))
-    }
+		log.Printf("server started at: %s", s.FmtAddress(address, port))
+	}
 }

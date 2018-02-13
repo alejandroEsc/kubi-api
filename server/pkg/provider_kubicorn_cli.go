@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"fmt"
+
 	"github.com/alejandroEsc/cluster-apis/api"
 )
 
@@ -21,7 +22,7 @@ var (
 func NewKubicornProviderCLI(p ProviderOptions, c ClusterOptions) *kubicornCLI {
 	return &kubicornCLI{providerOpts: p,
 		clusterOpts: c,
-		status: UnCreated}
+		status:      UnCreated}
 }
 
 func (k *kubicornCLI) apply() (*clusteror.ClusterStatusMsg, error) {
@@ -34,10 +35,10 @@ func (k *kubicornCLI) apply() (*clusteror.ClusterStatusMsg, error) {
 	}
 
 	commandString := fmt.Sprintf("kubicorn apply %s", k.clusterOpts.Name)
-    err := runCommandPrintOutput(commandString)
-    if err != nil{
-        return nil, err
-    }
+	err := runCommandPrintOutput(commandString)
+	if err != nil {
+		return nil, err
+	}
 
 	k.status = Applied
 
@@ -54,10 +55,10 @@ func (k *kubicornCLI) create() (*clusteror.ClusterStatusMsg, error) {
 	}
 
 	commandString := fmt.Sprintf("kubicorn create %s --profile %s", k.clusterOpts.Name, k.clusterOpts.CloudProviderName)
-    err := runCommandPrintOutput(commandString)
-    if err != nil{
-        return nil, err
-    }
+	err := runCommandPrintOutput(commandString)
+	if err != nil {
+		return nil, err
+	}
 
 	k.status = Created
 
@@ -74,10 +75,10 @@ func (k *kubicornCLI) delete() (*clusteror.ClusterStatusMsg, error) {
 	}
 
 	commandString := fmt.Sprintf("kubicorn delete %s", k.clusterOpts.Name)
-    err := runCommandPrintOutput(commandString)
-    if err != nil {
-        return nil, err
-    }
+	err := runCommandPrintOutput(commandString)
+	if err != nil {
+		return nil, err
+	}
 
 	k.status = Deleted
 	log.Print("done")

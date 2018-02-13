@@ -12,8 +12,8 @@ var (
 	envGateWayPort           = "gw_port"
 	envGateWaySwaggerDir     = "gw_swagger_dir"
 
-    envClientStep            = "step"
-    envClientDestroyArtifacts = "destroy_artifacts"
+	envClientStep             = "step"
+	envClientDestroyArtifacts = "destroy_artifacts"
 
 	defaultAddress      = "localhost"
 	defaultPort         = 8501
@@ -48,9 +48,9 @@ func InitEnvVars() error {
 		return err
 	}
 
-    if err = viper.BindEnv(envClientStep); err != nil {
-        return err
-    }
+	if err = viper.BindEnv(envClientStep); err != nil {
+		return err
+	}
 
 	err = viper.BindEnv(envClientDestroyArtifacts)
 
@@ -88,7 +88,7 @@ func ParseClientEnvVars() (string, bool) {
 		clientStep = defaultClientStep
 	}
 
-    destroyAll := viper.GetBool(envClientDestroyArtifacts)
+	destroyAll := viper.GetBool(envClientDestroyArtifacts)
 
 	return clientStep, destroyAll
 }

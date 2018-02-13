@@ -15,62 +15,63 @@
 package kubicornlib
 
 import (
-    "fmt"
-    "log"
+	"fmt"
+	"log"
 
-    "github.com/kris-nova/kubicorn/state/fs"
-    "github.com/kris-nova/kubicorn/state/jsonfs"
-    gg "github.com/tcnksm/go-gitconfig"
-    "errors"
-    "github.com/kris-nova/kubicorn/state/git"
+	"errors"
+
+	"github.com/kris-nova/kubicorn/state/fs"
+	"github.com/kris-nova/kubicorn/state/git"
+	"github.com/kris-nova/kubicorn/state/jsonfs"
+	gg "github.com/tcnksm/go-gitconfig"
 )
 
 type Options struct {
-    StateStore     string
-    StateStorePath string
-    Name           string
-    CloudId        string
-    Set            string
-    AwsProfile     string
-    GitRemote      string
+	StateStore     string
+	StateStorePath string
+	Name           string
+	CloudId        string
+	Set            string
+	AwsProfile     string
+	GitRemote      string
 }
 
 func (options Options) NewStateStore() (ClusterStorer, error) {
-    var stateStore ClusterStorer
+	var stateStore ClusterStorer
 
-    switch options.StateStore {
-    case "fs":
-        log.Print("Selected [fs] state store")
-        stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
-            BasePath:    options.StateStorePath,
-            ClusterName: options.Name,
-        })
-    case "git":
-        log.Print("Selected [git] state store")
-        if options.GitRemote == "" {
-            return nil, errors.New("Empty GitRemote url. Must specify the link to the remote git repo.")
-        }
-        user, _ := gg.Global("user.name")
-        email, _ := gg.Email()
+	switch options.StateStore {
+	case "fs":
+		log.Print("Selected [fs] state store")
+		stateStore = fs.NewFileSystemStore(&fs.FileSystemStoreOptions{
+			BasePath:    options.StateStorePath,
+			ClusterName: options.Name,
+		})
+	case "git":
+		log.Print("Selected [git] state store")
+		if options.GitRemote == "" {
+			return nil, errors.New("Empty GitRemote url. Must specify the link to the remote git repo.")
+		}
+		user, _ := gg.Global("user.name")
+		email, _ := gg.Email()
 
-        stateStore = git.NewJSONGitStore(&git.JSONGitStoreOptions{
-            BasePath:    options.StateStorePath,
-            ClusterName: options.Name,
-            CommitConfig: &git.JSONGitCommitConfig{
-                Name:   user,
-                Email:  email,
-                Remote: options.GitRemote,
-            },
-        })
-    case "jsonfs":
-        log.Print("Selected [jsonfs] state store")
-        stateStore = jsonfs.NewJSONFileSystemStore(&jsonfs.JSONFileSystemStoreOptions{
-            BasePath:    options.StateStorePath,
-            ClusterName: options.Name,
-        })
-    default:
-        return nil, fmt.Errorf("State store [%s] has an invalid type [%s].", options.Name, options.StateStore)
-    }
+		stateStore = git.NewJSONGitStore(&git.JSONGitStoreOptions{
+			BasePath:    options.StateStorePath,
+			ClusterName: options.Name,
+			CommitConfig: &git.JSONGitCommitConfig{
+				Name:   user,
+				Email:  email,
+				Remote: options.GitRemote,
+			},
+		})
+	case "jsonfs":
+		log.Print("Selected [jsonfs] state store")
+		stateStore = jsonfs.NewJSONFileSystemStore(&jsonfs.JSONFileSystemStoreOptions{
+			BasePath:    options.StateStorePath,
+			ClusterName: options.Name,
+		})
+	default:
+		return nil, fmt.Errorf("State store [%s] has an invalid type [%s].", options.Name, options.StateStore)
+	}
 
-    return stateStore, nil
+	return stateStore, nil
 }

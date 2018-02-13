@@ -7,7 +7,7 @@ import (
 type ClusterOptions struct {
 	Name              string
 	CloudProviderName string
-    CloudId           string
+	CloudId           string
 }
 
 type ClusterStatus struct {
@@ -18,13 +18,12 @@ type ClusterStatus struct {
 var (
 	// find another name for initial uncreated state. (zero)
 	UnCreated = ClusterStatus{0, "uncreated"}
-	Created = ClusterStatus{1, "created"}
-	Applied = ClusterStatus{2, "applied"}
-	Deleted = ClusterStatus{3, "deleted"}
+	Created   = ClusterStatus{1, "created"}
+	Applied   = ClusterStatus{2, "applied"}
+	Deleted   = ClusterStatus{3, "deleted"}
 )
 
-
-func (c * ClusterStatus) createClusterStatusMsg() *api.ClusterStatusMsg {
+func (c *ClusterStatus) createClusterStatusMsg() *api.ClusterStatusMsg {
 	return &api.ClusterStatusMsg{Status: c.Msg, Code: c.Code}
 }
 
@@ -33,16 +32,16 @@ func parseClusterDefinition(a *api.ClusterDefinition) (error, ClusterOptions, Pr
 	var error error
 	var clusterOpts ClusterOptions
 
-	clusterOpts = ClusterOptions {
+	clusterOpts = ClusterOptions{
 		Name:              a.ClusterConfigs.Name,
 		CloudProviderName: a.ClusterConfigs.CloudProviderName,
-        CloudId:           a.CloudId,
+		CloudId:           a.CloudId,
 	}
 
-	providerOpts = ProviderOptions {
+	providerOpts = ProviderOptions{
 		Name:              a.ClusterProvider,
 		AutoFetchProvider: a.AutoFetchClusterProvider,
-        StorePath:         a.ProviderStorePath,
+		StorePath:         a.ProviderStorePath,
 	}
 
 	return error, clusterOpts, providerOpts

@@ -5,15 +5,16 @@ import (
 	"strings"
 
 	"fmt"
+
 	"github.com/alejandroEsc/cluster-apis/api"
-	"github.com/kris-nova/kubicorn/pkg"
-	"github.com/kris-nova/kubicorn/pkg/agent"
-	"github.com/kris-nova/kubicorn/pkg/local"
-	"github.com/kris-nova/kubicorn/pkg/task"
 	kubi "github.com/alejandroEsc/cluster-apis/server/pkg/kubicorn_lib"
 	"github.com/kris-nova/kubicorn/apis/cluster"
-	"github.com/kris-nova/kubicorn/pkg/kubeconfig"
+	"github.com/kris-nova/kubicorn/pkg"
+	"github.com/kris-nova/kubicorn/pkg/agent"
 	"github.com/kris-nova/kubicorn/pkg/initapi"
+	"github.com/kris-nova/kubicorn/pkg/kubeconfig"
+	"github.com/kris-nova/kubicorn/pkg/local"
+	"github.com/kris-nova/kubicorn/pkg/task"
 )
 
 type kubicorn struct {
@@ -22,11 +23,10 @@ type kubicorn struct {
 	status       ClusterStatus
 }
 
-
 func NewKubicornProvider(p ProviderOptions, c ClusterOptions) *kubicorn {
 	return &kubicorn{providerOpts: p,
 		clusterOpts: c,
-		status: UnCreated}
+		status:      UnCreated}
 }
 
 func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
@@ -119,7 +119,6 @@ func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
 	privKeyPath := strings.Replace(cluster.SSH.PublicKeyPath, ".pub", "", 1)
 	log.Printf("You can SSH into your cluster ssh -i %s %s@%s", privKeyPath, reconciled.SSH.User, reconciled.KubernetesAPI.Endpoint)
 
-
 	k.status = Applied
 
 	return k.status.createClusterStatusMsg(), nil
@@ -207,7 +206,7 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 	var rp pkg.RuntimeParameters
 	switch k.clusterOpts.CloudProviderName {
 	case "aws":
-		rp =  pkg.RuntimeParameters{AwsProfile: "default"}
+		rp = pkg.RuntimeParameters{AwsProfile: "default"}
 	}
 
 	reconciler, err := pkg.GetReconciler(acluster, &rp)
@@ -238,6 +237,3 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 	k.status = Deleted
 	return k.status.createClusterStatusMsg(), nil
 }
-
-
-
