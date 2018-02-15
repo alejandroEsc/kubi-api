@@ -8,13 +8,13 @@ import (
 	"os"
 
 	api "github.com/alejandroEsc/kubicorn-example-server/api"
+	ipkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 	prs "github.com/alejandroEsc/kubicorn-example-server/pkg/providers"
-	ipkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
 	"google.golang.org/grpc"
 
-	"net"
 	"fmt"
+	"net"
 )
 
 type clusterServer struct {
@@ -56,7 +56,6 @@ func (s *clusterServer) Delete(c context.Context, cd *api.ClusterDefinition) (*a
 	return s.provider.Delete()
 }
 
-
 func (s *clusterServer) getProviderParseOptions(cd *api.ClusterDefinition) (cl.Provider, error) {
 	clusterOpts, providerOpts := cl.ParseClusterDefinition(cd)
 
@@ -73,7 +72,7 @@ func (s *clusterServer) getProviderParseOptions(cd *api.ClusterDefinition) (cl.P
 func Start(gracefulStop chan os.Signal) error {
 	err := ipkg.InitEnvVars()
 	if err != nil {
-		fmt.Errorf("failed to init config vars: %s", err)
+		return fmt.Errorf("failed to init config vars: %s", err)
 	}
 
 	port, address := ipkg.ParseServerEnvVars()

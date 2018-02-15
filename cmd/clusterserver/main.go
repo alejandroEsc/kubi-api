@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	s "github.com/alejandroEsc/kubicorn-example-server/internal/app/cluster_server"
+	s "github.com/alejandroEsc/kubicorn-example-server/internal/app/clusterserver"
 	"golang.org/x/net/context"
 )
 

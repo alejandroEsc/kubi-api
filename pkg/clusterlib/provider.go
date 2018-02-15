@@ -11,13 +11,9 @@ type ProviderOptions struct {
 	StorePath         string
 }
 
-
-
 // Provider is cluster provider object
 type Provider interface {
 	Apply() (*api.ClusterStatusMsg, error)
 	Create() (*api.ClusterStatusMsg, error)
 	Delete() (*api.ClusterStatusMsg, error)
 }
-
-

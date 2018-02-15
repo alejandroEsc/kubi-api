@@ -1,14 +1,15 @@
 package providers
 
 import (
-	"log"
 	"fmt"
+	"log"
 
 	"github.com/alejandroEsc/kubicorn-example-server/api"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 )
 
-type kubicornCLI struct {
+// KubicornCLI represents a kubicorn provider via library calls
+type KubicornCLI struct {
 	providerOpts cl.ProviderOptions
 	clusterOpts  cl.ClusterOptions
 	status       cl.ClusterStatus
@@ -20,13 +21,15 @@ var (
 	awsCloudProvider = "aws"
 )
 
-func NewKubicornProviderCLI(p cl.ProviderOptions, c cl.ClusterOptions) *kubicornCLI {
-	return &kubicornCLI{providerOpts: p,
+// NewKubicornProviderCLI returns a new kubicornCLI providor
+func NewKubicornProviderCLI(p cl.ProviderOptions, c cl.ClusterOptions) *KubicornCLI {
+	return &KubicornCLI{providerOpts: p,
 		clusterOpts: c,
 		status:      cl.Planned}
 }
 
-func (k *kubicornCLI) Apply() (*clusteror.ClusterStatusMsg, error) {
+// Apply commits state changes.
+func (k *KubicornCLI) Apply() (*clusteror.ClusterStatusMsg, error) {
 	if k.status.Code > cl.Applied.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Applied.Msg)
 	}
@@ -46,7 +49,8 @@ func (k *kubicornCLI) Apply() (*clusteror.ClusterStatusMsg, error) {
 	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
+// Create new cluster if it does not exists, meaning creates supporting state files
+func (k *KubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
 	if k.status.Code > cl.Created.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Created.Msg)
 	}
@@ -66,7 +70,8 @@ func (k *kubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
 	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicornCLI) Delete() (*clusteror.ClusterStatusMsg, error) {
+// Delete and destroy cluster and its resources
+func (k *KubicornCLI) Delete() (*clusteror.ClusterStatusMsg, error) {
 	if k.status.Code > cl.Deleted.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Deleted.Msg)
 	}

@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/alejandroEsc/kubicorn-example-server/api"
-	kubi "github.com/alejandroEsc/kubicorn-example-server/internal/app/cluster_server/kubicornlib"
+	kubi "github.com/alejandroEsc/kubicorn-example-server/internal/app/clusterserver/kubicornlib"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/pkg"
@@ -18,19 +18,22 @@ import (
 	"github.com/kris-nova/kubicorn/pkg/task"
 )
 
-type kubicorn struct {
+// Kubicorn represents a kubicorn provider via library calls
+type Kubicorn struct {
 	providerOpts cl.ProviderOptions
 	clusterOpts  cl.ClusterOptions
 	status       cl.ClusterStatus
 }
 
-func NewKubicornProvider(p cl.ProviderOptions, c cl.ClusterOptions) *kubicorn {
-	return &kubicorn{providerOpts: p,
+// NewKubicornProvider returns provider for creating kubicorn cluster via library calls.
+func NewKubicornProvider(p cl.ProviderOptions, c cl.ClusterOptions) *Kubicorn {
+	return &Kubicorn{providerOpts: p,
 		clusterOpts: c,
 		status:      cl.Planned}
 }
 
-func (k *kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
+// Apply commits state changes.
+func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[applying] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
@@ -125,7 +128,8 @@ func (k *kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
+// Create new cluster if it does not exists, meaning creates supporting state files
+func (k *Kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[creating] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
@@ -172,7 +176,8 @@ func (k *kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
 	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicorn) Delete() (*clusteror.ClusterStatusMsg, error) {
+// Delete and destroy cluster and its resources
+func (k *Kubicorn) Delete() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[deleting] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 

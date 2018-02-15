@@ -53,8 +53,14 @@ func (options Options) NewStateStore() (ClusterStorer, error) {
 		if options.GitRemote == "" {
 			return nil, errors.New("empty GitRemote url. Must specify the link to the remote git repo")
 		}
-		user, _ := gg.Global("user.name")
-		email, _ := gg.Email()
+		user, err := gg.Global("user.name")
+		if err != nil {
+			user = ""
+		}
+		email, err := gg.Email()
+		if err != nil {
+			email = ""
+		}
 
 		stateStore = git.NewJSONGitStore(&git.JSONGitStoreOptions{
 			BasePath:    options.StateStorePath,

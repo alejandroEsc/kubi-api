@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
-	pkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
 	api "github.com/alejandroEsc/kubicorn-example-server/api"
+	pkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
 	"google.golang.org/grpc"
 )
 

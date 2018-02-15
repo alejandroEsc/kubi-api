@@ -20,4 +20,4 @@ fi
 source "${ROOT}/bin/common.sh"
 
 inf "false-positives may be mitigated, please read https://github.com/GoASTScanner/gas for details."
-gas ./... 2>&1
+gas --exclude G204 ./... 2>&1
