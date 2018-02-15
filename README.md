@@ -5,7 +5,7 @@
 To start a server please run
 
 ```sbtshell
-go run ./server/main.go
+go run ./cmd/clusterserver/main.go
 ```
 
 
@@ -14,23 +14,23 @@ You may write a client as you wish, here we have two sample clients, each can be
 
 ### bring up a cluster, (creating and apply)
 ```sbtshell
-CLUSTER_CREATOR_STEP=up go run ./client_kubicorn/client.go
+CLUSTER_CREATOR_STEP=up go run ./cmd/clientkubicorn/client.go
 ```
 or
 
 ```sbtshell
-CLUSTER_CREATOR_STEP=up go run ./client_kubicorn_cli/client.go
+CLUSTER_CREATOR_STEP=up go run ./cmd/clientkubicorncli/client.go
 
 ```
 
 ### bring down a cluster, (creating and apply)
 ```sbtshell
-CLUSTER_CREATOR_STEP=down go run ./client_kubicorn/client.go
+CLUSTER_CREATOR_STEP=down go run ./cmd/clientkubicorn/client.go
 ```
 or
 
 ```sbtshell
-CLUSTER_CREATOR_STEP=down go run ./client_kubicorn_cli/client.go
+CLUSTER_CREATOR_STEP=down go run ./cmd/clientkubicorncli/client.go
 
 ```
 
