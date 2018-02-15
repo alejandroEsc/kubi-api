@@ -7,61 +7,83 @@ import (
 
 	"os"
 
-	api "github.com/alejandroEsc/cluster-apis/api"
+	api "github.com/alejandroEsc/kubicorn-example-server/api"
+	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
+	prs "github.com/alejandroEsc/kubicorn-example-server/pkg/providers"
+	ipkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
 	"google.golang.org/grpc"
 
 	"net"
+	"fmt"
 )
 
 type clusterServer struct {
+	provider cl.Provider
 }
 
 func (s *clusterServer) Create(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	clusterOpts, providerOpts := parseClusterDefinition(cd)
-
-	provider, err := getProvider(providerOpts, clusterOpts)
+	var err error
+	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
-	return provider.create()
+	return s.provider.Create()
 
 }
 
 func (s *clusterServer) Apply(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	clusterOpts, providerOpts := parseClusterDefinition(cd)
-
-	provider, err := getProvider(providerOpts, clusterOpts)
+	var err error
+	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
-	return provider.apply()
+	return s.provider.Apply()
 
 }
 
 func (s *clusterServer) Delete(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
-	clusterOpts, providerOpts := parseClusterDefinition(cd)
-
-	provider, err := getProvider(providerOpts, clusterOpts)
+	var err error
+	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
 		log.Printf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
-	return provider.delete()
+	return s.provider.Delete()
+}
+
+
+func (s *clusterServer) getProviderParseOptions(cd *api.ClusterDefinition) (cl.Provider, error) {
+	clusterOpts, providerOpts := cl.ParseClusterDefinition(cd)
+
+	provider, err := prs.GetProvider(providerOpts, clusterOpts)
+	if err != nil {
+		log.Printf("error parsing cluster definition: %s", err)
+		return nil, err
+	}
+
+	return provider, nil
 }
 
 // Start the server here.
-func Start(addr string, gracefulStop chan os.Signal) error {
-	var err error
+func Start(gracefulStop chan os.Signal) error {
+	err := ipkg.InitEnvVars()
+	if err != nil {
+		fmt.Errorf("failed to init config vars: %s", err)
+	}
+
+	port, address := ipkg.ParseServerEnvVars()
+	addr := ipkg.FmtAddress(address, port)
+
 	log.Print("starting server")
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return err
 	}
 
 	var opts []grpc.ServerOption

@@ -1,4 +1,4 @@
-package server
+package internalpkg
 
 import (
 	"github.com/spf13/viper"

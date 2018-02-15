@@ -1,4 +1,4 @@
-package server
+package providers
 
 import (
 	"log"
@@ -6,8 +6,9 @@ import (
 
 	"fmt"
 
-	"github.com/alejandroEsc/cluster-apis/api"
-	kubi "github.com/alejandroEsc/cluster-apis/server/pkg/kubicorn_lib"
+	"github.com/alejandroEsc/kubicorn-example-server/api"
+	kubi "github.com/alejandroEsc/kubicorn-example-server/internal/app/cluster_server/kubicornlib"
+	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/pkg"
 	"github.com/kris-nova/kubicorn/pkg/agent"
@@ -18,26 +19,26 @@ import (
 )
 
 type kubicorn struct {
-	providerOpts ProviderOptions
-	clusterOpts  clusterOptions
-	status       clusterStatus
+	providerOpts cl.ProviderOptions
+	clusterOpts  cl.ClusterOptions
+	status       cl.ClusterStatus
 }
 
-func newKubicornProvider(p ProviderOptions, c clusterOptions) *kubicorn {
+func NewKubicornProvider(p cl.ProviderOptions, c cl.ClusterOptions) *kubicorn {
 	return &kubicorn{providerOpts: p,
 		clusterOpts: c,
-		status:      unCreated}
+		status:      cl.Planned}
 }
 
-func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
+func (k *kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[applying] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
-	if k.status.Code > applied.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, applied.Msg)
+	if k.status.Code > cl.Applied.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Applied.Msg)
 	}
 
-	if k.status.Code == applied.Code {
+	if k.status.Code == cl.Applied.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 	var cluster *cluster.Cluster
@@ -119,20 +120,20 @@ func (k *kubicorn) apply() (*clusteror.ClusterStatusMsg, error) {
 	privKeyPath := strings.Replace(cluster.SSH.PublicKeyPath, ".pub", "", 1)
 	log.Printf("You can SSH into your cluster ssh -i %s %s@%s", privKeyPath, reconciled.SSH.User, reconciled.KubernetesAPI.Endpoint)
 
-	k.status = applied
+	k.status = cl.Applied
 
-	return k.status.createClusterStatusMsg(), nil
+	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicorn) create() (*clusteror.ClusterStatusMsg, error) {
+func (k *kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[creating] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
-	if k.status.Code > created.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, created.Msg)
+	if k.status.Code > cl.Created.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Created.Msg)
 	}
 
-	if k.status.Code == created.Code {
+	if k.status.Code == cl.Created.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -167,11 +168,11 @@ func (k *kubicorn) create() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to init state store: %v", err)
 	}
 
-	k.status = created
-	return k.status.createClusterStatusMsg(), nil
+	k.status = cl.Created
+	return k.status.CreateClusterStatusMsg(), nil
 }
 
-func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
+func (k *kubicorn) Delete() (*clusteror.ClusterStatusMsg, error) {
 	log.Printf("[deleting] cluster %s ...", k.clusterOpts.Name)
 	defer log.Print("...done")
 
@@ -179,11 +180,11 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 	var acluster *cluster.Cluster
 	var deleteCluster *cluster.Cluster
 
-	if k.status.Code > deleted.Code {
-		return nil, fmt.Errorf(errorRevertState, k.status.Msg, deleted.Msg)
+	if k.status.Code > cl.Deleted.Code {
+		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Deleted.Msg)
 	}
 
-	if k.status.Code == deleted.Code {
+	if k.status.Code == cl.Deleted.Code {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
@@ -234,6 +235,6 @@ func (k *kubicorn) delete() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to remove state store for cluster [%s]: %v", options.Name, err)
 	}
 
-	k.status = deleted
-	return k.status.createClusterStatusMsg(), nil
+	k.status = cl.Deleted
+	return k.status.CreateClusterStatusMsg(), nil
 }

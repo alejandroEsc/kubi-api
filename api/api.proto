@@ -2,30 +2,30 @@ syntax = "proto3";
 package clusteror;
 
 
-//import "google/api/annotations.proto";
+import "google/api/annotations.proto";
 
 
 service ClusterCreator {
 
     rpc Create(ClusterDefinition) returns (ClusterStatusMsg) {
-//        option (google.api.http) = {
-//            post : "/v1/create"
-//            body: "*"
-//        };
+        option (google.api.http) = {
+            post : "/v1/create"
+            body: "*"
+        };
     }
 
     rpc Apply(ClusterDefinition) returns (ClusterStatusMsg) {
-//        option (google.api.http) = {
-//            post : "/v1/apply"
-//            body: "*"
-//        };
+        option (google.api.http) = {
+            post : "/v1/apply"
+            body: "*"
+        };
     }
 
     rpc Delete(ClusterDefinition) returns (ClusterStatusMsg){
-//        option (google.api.http) = {
-//            post : "/v1/delete"
-//            body: "*"
-//        };
+        option (google.api.http) = {
+            post : "/v1/delete"
+            body: "*"
+        };
     }
 
 }

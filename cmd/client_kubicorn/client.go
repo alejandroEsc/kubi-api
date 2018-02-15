@@ -2,24 +2,32 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
 	"strings"
 
-	api "github.com/alejandroEsc/cluster-apis/api"
-	configs "github.com/alejandroEsc/cluster-apis/server/pkg"
+	pkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
+	api "github.com/alejandroEsc/kubicorn-example-server/api"
 	"google.golang.org/grpc"
 )
 
 func createClusterDefinition() *api.ClusterDefinition {
+	name := "ae_kluster"
+	storePath := fmt.Sprintf("_state/%s", name)
+	cloudProvider := "aws"
+	clusterProvider := "kubicorn"
+
 	cs := &api.ClusterConfigs{
-		Name:              "ae_kluster",
-		CloudProviderName: "aws"}
+		Name:              name,
+		CloudProviderName: cloudProvider}
 
 	cd := api.ClusterDefinition{
-		ClusterProvider:          "kubicorn_cli",
+		ClusterProvider:          clusterProvider,
 		AutoFetchClusterProvider: true,
-		ClusterConfigs:           cs}
+		ClusterConfigs:           cs,
+		ProviderStorePath:        storePath,
+		CloudID:                  ""}
 
 	return &cd
 }
@@ -30,7 +38,7 @@ func runDoCreate(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %+v", r)
+	log.Printf("reply message: %v", r)
 	return err
 }
 
@@ -40,7 +48,7 @@ func runDoApply(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %+v", r)
+	log.Printf("reply message: %v", r)
 	return err
 }
 
@@ -50,7 +58,7 @@ func runDoDelete(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %+v", r)
+	log.Printf("reply message: %v", r)
 	return err
 }
 
@@ -63,24 +71,24 @@ func runCommandPrintOutput(cmd string) error {
 		log.Printf("found error attempting command: %s", err)
 	}
 
-	log.Print(".. done")
+	log.Printf(".. done")
 	return err
 }
 
 func main() {
-	if err := configs.InitEnvVars(); err != nil {
+	if err := pkg.InitEnvVars(); err != nil {
 		log.Fatalf("failed to init config vars: %s", err)
 	}
 
-	port, address := configs.ParseServerEnvVars()
+	port, address := pkg.ParseServerEnvVars()
 
 	var opts []grpc.DialOption
 
 	opts = append(opts, grpc.WithInsecure())
 
-	step, destroyAll := configs.ParseClientEnvVars()
+	step, _ := pkg.ParseClientEnvVars()
 
-	conn, err := grpc.Dial(configs.FmtAddress(address, port), opts...)
+	conn, err := grpc.Dial(pkg.FmtAddress(address, port), opts...)
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
@@ -105,13 +113,6 @@ func main() {
 		err = runDoDelete(client)
 		if err != nil {
 			log.Printf("got an error message: %s", err)
-		}
-
-		if destroyAll {
-			err = runCommandPrintOutput("rm -rf _state")
-			if err != nil {
-				log.Printf("got an error message: %s", err)
-			}
 		}
 	default:
 		log.Printf("the command %s is not a valid task.", step)
