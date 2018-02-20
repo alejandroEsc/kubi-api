@@ -35,8 +35,13 @@ CLUSTER_CREATOR_STEP=down go run ./cmd/clientkubicorncli/client.go
 ```
 
 
-## gRPC-gateway
-Not implemented yet, to be done soon. 
+## gRPC rest-gateway
+A restful gateway can be created and run:
+```sbtshell
+go run ./cmd/restgateway/main.go
+```
+
+Will allow you to manage a cluster via a restful endpoint.
 
 
 ## Development details
