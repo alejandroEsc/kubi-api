@@ -3,11 +3,9 @@ package index
 import (
 	"testing"
 
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/filemode"
-
 	. "gopkg.in/check.v1"
-	"gopkg.in/src-d/go-git-fixtures.v3"
+	"gopkg.in/src-d/go-git.v4/fixtures"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -21,7 +19,6 @@ var _ = Suite(&IndexSuite{})
 func (s *IndexSuite) TestDecode(c *C) {
 	f, err := fixtures.Basic().One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -35,7 +32,6 @@ func (s *IndexSuite) TestDecode(c *C) {
 func (s *IndexSuite) TestDecodeEntries(c *C) {
 	f, err := fixtures.Basic().One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -45,7 +41,6 @@ func (s *IndexSuite) TestDecodeEntries(c *C) {
 	c.Assert(idx.Entries, HasLen, 9)
 
 	e := idx.Entries[0]
-
 	c.Assert(e.CreatedAt.Unix(), Equals, int64(1480626693))
 	c.Assert(e.CreatedAt.Nanosecond(), Equals, 498593596)
 	c.Assert(e.ModifiedAt.Unix(), Equals, int64(1480626693))
@@ -57,7 +52,7 @@ func (s *IndexSuite) TestDecodeEntries(c *C) {
 	c.Assert(e.Size, Equals, uint32(189))
 	c.Assert(e.Hash.String(), Equals, "32858aad3c383ed1ff0a0f9bdf231d54a00c9e88")
 	c.Assert(e.Name, Equals, ".gitignore")
-	c.Assert(e.Mode, Equals, filemode.Regular)
+	c.Assert(e.Mode.String(), Equals, "-rw-r--r--")
 
 	e = idx.Entries[1]
 	c.Assert(e.Name, Equals, "CHANGELOG")
@@ -66,7 +61,6 @@ func (s *IndexSuite) TestDecodeEntries(c *C) {
 func (s *IndexSuite) TestDecodeCacheTree(c *C) {
 	f, err := fixtures.Basic().One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -96,7 +90,6 @@ var expectedEntries = []TreeEntry{
 func (s *IndexSuite) TestDecodeMergeConflict(c *C) {
 	f, err := fixtures.Basic().ByTag("merge-conflict").One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -118,8 +111,10 @@ func (s *IndexSuite) TestDecodeMergeConflict(c *C) {
 	// stagged files
 	for i, e := range idx.Entries[4:7] {
 		c.Assert(e.Stage, Equals, expected[i].Stage)
-		c.Assert(e.CreatedAt.IsZero(), Equals, true)
-		c.Assert(e.ModifiedAt.IsZero(), Equals, true)
+		c.Assert(e.CreatedAt.Unix(), Equals, int64(0))
+		c.Assert(e.CreatedAt.Nanosecond(), Equals, 0)
+		c.Assert(e.ModifiedAt.Unix(), Equals, int64(0))
+		c.Assert(e.ModifiedAt.Nanosecond(), Equals, 0)
 		c.Assert(e.Dev, Equals, uint32(0))
 		c.Assert(e.Inode, Equals, uint32(0))
 		c.Assert(e.UID, Equals, uint32(0))
@@ -134,7 +129,6 @@ func (s *IndexSuite) TestDecodeMergeConflict(c *C) {
 func (s *IndexSuite) TestDecodeExtendedV3(c *C) {
 	f, err := fixtures.Basic().ByTag("intent-to-add").One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -152,7 +146,6 @@ func (s *IndexSuite) TestDecodeExtendedV3(c *C) {
 func (s *IndexSuite) TestDecodeResolveUndo(c *C) {
 	f, err := fixtures.Basic().ByTag("resolve-undo").One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)
@@ -178,7 +171,6 @@ func (s *IndexSuite) TestDecodeResolveUndo(c *C) {
 func (s *IndexSuite) TestDecodeV4(c *C) {
 	f, err := fixtures.Basic().ByTag("index-v4").One().DotGit().Open("index")
 	c.Assert(err, IsNil)
-	defer func() { c.Assert(f.Close(), IsNil) }()
 
 	idx := &Index{}
 	d := NewDecoder(f)

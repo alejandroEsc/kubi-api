@@ -2,7 +2,6 @@ package git
 
 import (
 	"io"
-	"sort"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -11,53 +10,26 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-// References returns a slice of Commits for the file at "path", starting from
-// the commit provided that contains the file from the provided path. The last
-// commit into the returned slice is the commit where the file was created.
-// If the provided commit does not contains the specified path, a nil slice is
-// returned. The commits are sorted in commit order, newer to older.
+// References returns a References for the file at "path", the commits are
+// sorted in commit order. It stops searching a branch for a file upon reaching
+// the commit were the file was created.
 //
 // Caveats:
-//
 // - Moves and copies are not currently supported.
-//
 // - Cherry-picks are not detected unless there are no commits between them and
-// therefore can appear repeated in the list. (see git path-id for hints on how
-// to fix this).
-func references(c *object.Commit, path string) ([]*object.Commit, error) {
+//   therefore can appear repeated in the list.
+//   (see git path-id for hints on how to fix this).
+func References(c *object.Commit, path string) ([]*object.Commit, error) {
 	var result []*object.Commit
-	seen := make(map[plumbing.Hash]struct{})
+	seen := make(map[plumbing.Hash]struct{}, 0)
 	if err := walkGraph(&result, &seen, c, path); err != nil {
 		return nil, err
 	}
 
-	// TODO result should be returned without ordering
-	sortCommits(result)
+	object.SortCommits(result)
 
 	// for merges of identical cherry-picks
 	return removeComp(path, result, equivalent)
-}
-
-type commitSorterer struct {
-	l []*object.Commit
-}
-
-func (s commitSorterer) Len() int {
-	return len(s.l)
-}
-
-func (s commitSorterer) Less(i, j int) bool {
-	return s.l[i].Committer.When.Before(s.l[j].Committer.When)
-}
-
-func (s commitSorterer) Swap(i, j int) {
-	s.l[i], s.l[j] = s.l[j], s.l[i]
-}
-
-// SortCommits sorts a commit list by commit date, from older to newer.
-func sortCommits(l []*object.Commit) {
-	s := &commitSorterer{l}
-	sort.Sort(s)
 }
 
 // Recursive traversal of the commit graph, generating a linear history of the
@@ -76,10 +48,8 @@ func walkGraph(result *[]*object.Commit, seen *map[plumbing.Hash]struct{}, curre
 
 	// optimization: don't traverse branches that does not
 	// contain the path.
-	parents, err := parentsContainingPath(path, current)
-	if err != nil {
-		return err
-	}
+	parents := parentsContainingPath(path, current)
+
 	switch len(parents) {
 	// if the path is not found in any of its parents, the path was
 	// created by this commit; we must add it to the revisions list and
@@ -112,18 +82,18 @@ func walkGraph(result *[]*object.Commit, seen *map[plumbing.Hash]struct{}, curre
 	return nil
 }
 
-func parentsContainingPath(path string, c *object.Commit) ([]*object.Commit, error) {
-	// TODO: benchmark this method making git.object.Commit.parent public instead of using
-	// an iterator
+// TODO: benchmark this making git.object.Commit.parent public instead of using
+// an iterator
+func parentsContainingPath(path string, c *object.Commit) []*object.Commit {
 	var result []*object.Commit
 	iter := c.Parents()
 	for {
 		parent, err := iter.Next()
-		if err == io.EOF {
-			return result, nil
-		}
 		if err != nil {
-			return nil, err
+			if err == io.EOF {
+				return result
+			}
+			panic("unreachable")
 		}
 		if _, err := parent.File(path); err == nil {
 			result = append(result, parent)

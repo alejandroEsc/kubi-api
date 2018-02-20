@@ -24,7 +24,6 @@ func (r *ShallowUpdate) Decode(reader io.Reader) error {
 
 	for s.Scan() {
 		line := s.Bytes()
-		line = bytes.TrimSpace(line)
 
 		var err error
 		switch {
@@ -32,7 +31,7 @@ func (r *ShallowUpdate) Decode(reader io.Reader) error {
 			err = r.decodeShallowLine(line)
 		case bytes.HasPrefix(line, unshallow):
 			err = r.decodeUnshallowLine(line)
-		case bytes.Equal(line, pktline.Flush):
+		case bytes.Compare(line, pktline.Flush) == 0:
 			return nil
 		}
 
@@ -71,22 +70,4 @@ func (r *ShallowUpdate) decodeLine(line, prefix []byte, expLen int) (plumbing.Ha
 
 	raw := string(line[expLen-40 : expLen])
 	return plumbing.NewHash(raw), nil
-}
-
-func (r *ShallowUpdate) Encode(w io.Writer) error {
-	e := pktline.NewEncoder(w)
-
-	for _, h := range r.Shallows {
-		if err := e.Encodef("%s%s\n", shallow, h.String()); err != nil {
-			return err
-		}
-	}
-
-	for _, h := range r.Unshallows {
-		if err := e.Encodef("%s%s\n", unshallow, h.String()); err != nil {
-			return err
-		}
-	}
-
-	return e.Flush()
 }

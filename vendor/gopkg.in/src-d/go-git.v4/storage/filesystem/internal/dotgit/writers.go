@@ -9,8 +9,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/format/idxfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/objfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/packfile"
-
-	"gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-git.v4/utils/fs"
 )
 
 // PackWriter is a io.Writer that generates the packfile index simultaneously,
@@ -20,23 +19,23 @@ import (
 // is renamed/moved (depends on the Filesystem implementation) to the final
 // location, if the PackWriter is not used, nothing is written
 type PackWriter struct {
-	Notify func(plumbing.Hash, *packfile.Index)
+	Notify func(h plumbing.Hash, i idxfile.Idxfile)
 
-	fs       billy.Filesystem
-	fr, fw   billy.File
+	fs       fs.Filesystem
+	fr, fw   fs.File
 	synced   *syncedReader
 	checksum plumbing.Hash
-	index    *packfile.Index
+	index    idxfile.Idxfile
 	result   chan error
 }
 
-func newPackWrite(fs billy.Filesystem) (*PackWriter, error) {
+func newPackWrite(fs fs.Filesystem) (*PackWriter, error) {
 	fw, err := fs.TempFile(fs.Join(objectsPath, packPath), "tmp_pack_")
 	if err != nil {
 		return nil, err
 	}
 
-	fr, err := fs.Open(fw.Name())
+	fr, err := fs.Open(fw.Filename())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,14 @@ func (w *PackWriter) buildIndex() {
 	}
 
 	w.checksum = checksum
-	w.index = d.Index()
+	w.index.PackfileChecksum = checksum
+	w.index.Version = idxfile.VersionSupported
+
+	offsets := d.Offsets()
+	for h, crc := range d.CRCs() {
+		w.index.Add(h, uint64(offsets[h]), crc)
+	}
+
 	w.result <- err
 }
 
@@ -92,7 +98,7 @@ func (w *PackWriter) Write(p []byte) (int, error) {
 // was written, the tempfiles are deleted without writing a packfile.
 func (w *PackWriter) Close() error {
 	defer func() {
-		if w.Notify != nil && w.index != nil && w.index.Size() > 0 {
+		if w.Notify != nil {
 			w.Notify(w.checksum, w.index)
 		}
 
@@ -115,7 +121,7 @@ func (w *PackWriter) Close() error {
 		return err
 	}
 
-	if w.index == nil || w.index.Size() == 0 {
+	if len(w.index.Entries) == 0 {
 		return w.clean()
 	}
 
@@ -123,7 +129,7 @@ func (w *PackWriter) Close() error {
 }
 
 func (w *PackWriter) clean() error {
-	return w.fs.Remove(w.fw.Name())
+	return w.fs.Remove(w.fw.Filename())
 }
 
 func (w *PackWriter) save() error {
@@ -141,15 +147,12 @@ func (w *PackWriter) save() error {
 		return err
 	}
 
-	return w.fs.Rename(w.fw.Name(), fmt.Sprintf("%s.pack", base))
+	return w.fs.Rename(w.fw.Filename(), fmt.Sprintf("%s.pack", base))
 }
 
 func (w *PackWriter) encodeIdx(writer io.Writer) error {
-	idx := w.index.ToIdxFile()
-	idx.PackfileChecksum = w.checksum
-	idx.Version = idxfile.VersionSupported
 	e := idxfile.NewEncoder(writer)
-	_, err := e.Encode(idx)
+	_, err := e.Encode(&w.index)
 	return err
 }
 
@@ -186,14 +189,14 @@ func (s *syncedReader) Write(p []byte) (n int, err error) {
 func (s *syncedReader) Read(p []byte) (n int, err error) {
 	defer func() { atomic.AddUint64(&s.read, uint64(n)) }()
 
-	for {
-		s.sleep()
-		n, err = s.r.Read(p)
-		if err == io.EOF && !s.isDone() && n == 0 {
-			continue
+	s.sleep()
+	n, err = s.r.Read(p)
+	if err == io.EOF && !s.isDone() {
+		if n == 0 {
+			return s.Read(p)
 		}
 
-		break
+		return n, nil
 	}
 
 	return
@@ -232,7 +235,7 @@ func (s *syncedReader) Seek(offset int64, whence int) (int64, error) {
 	}
 
 	p, err := s.r.Seek(offset, whence)
-	atomic.StoreUint64(&s.read, uint64(p))
+	s.read = uint64(p)
 
 	return p, err
 }
@@ -245,11 +248,11 @@ func (s *syncedReader) Close() error {
 
 type ObjectWriter struct {
 	objfile.Writer
-	fs billy.Filesystem
-	f  billy.File
+	fs fs.Filesystem
+	f  fs.File
 }
 
-func newObjectWriter(fs billy.Filesystem) (*ObjectWriter, error) {
+func newObjectWriter(fs fs.Filesystem) (*ObjectWriter, error) {
 	f, err := fs.TempFile(fs.Join(objectsPath, packPath), "tmp_obj_")
 	if err != nil {
 		return nil, err
@@ -278,5 +281,5 @@ func (w *ObjectWriter) save() error {
 	hash := w.Hash().String()
 	file := w.fs.Join(objectsPath, hash[0:2], hash[2:40])
 
-	return w.fs.Rename(w.f.Name(), file)
+	return w.fs.Rename(w.f.Filename(), file)
 }

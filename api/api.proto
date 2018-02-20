@@ -5,7 +5,6 @@ package clusteror;
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
-
 service ClusterCreator {
 
     rpc Create(ClusterDefinition) returns (ClusterStatusMsg) {
@@ -39,7 +38,6 @@ message ClusterDefinition {
     string CloudID = 5;
 
 }
-
 
 message ClusterConfigs {
     string name = 1;

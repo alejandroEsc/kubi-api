@@ -1,7 +1,6 @@
-// Package capability defines the server and client capabilities.
 package capability
 
-// Capability describes a server or client capability.
+// Capability describes a server or client capability
 type Capability string
 
 func (n Capability) String() string {
@@ -234,7 +233,7 @@ const (
 
 const DefaultAgent = "go-git/4.x"
 
-var known = map[Capability]bool{
+var valid = map[Capability]bool{
 	MultiACK: true, MultiACKDetailed: true, NoDone: true, ThinPack: true,
 	Sideband: true, Sideband64k: true, OFSDelta: true, Agent: true,
 	Shallow: true, DeepenSince: true, DeepenNot: true, DeepenRelative: true,

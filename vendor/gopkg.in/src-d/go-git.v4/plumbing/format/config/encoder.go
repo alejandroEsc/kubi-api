@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 // An Encoder writes config files to an output stream.
@@ -53,17 +52,16 @@ func (e *Encoder) encodeSubsection(sectionName string, s *Subsection) error {
 		return err
 	}
 
-	return e.encodeOptions(s.Options)
+	if err := e.encodeOptions(s.Options); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (e *Encoder) encodeOptions(opts Options) error {
 	for _, o := range opts {
-		pattern := "\t%s = %s\n"
-		if strings.Contains(o.Value, "\\") {
-			pattern = "\t%s = %q\n"
-		}
-
-		if err := e.printf(pattern, o.Key, o.Value); err != nil {
+		if err := e.printf("\t%s = %s\n", o.Key, o.Value); err != nil {
 			return err
 		}
 	}

@@ -1,19 +1,15 @@
 package git
 
 import (
+	"fmt"
 	"testing"
 
-	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/fixtures"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/packfile"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
+	"gopkg.in/src-d/go-git.v4/plumbing/storer"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/client"
 
 	. "gopkg.in/check.v1"
-	"gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-billy.v4/memfs"
-	"gopkg.in/src-d/go-billy.v4/util"
-	"gopkg.in/src-d/go-git-fixtures.v3"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -21,86 +17,32 @@ func Test(t *testing.T) { TestingT(t) }
 type BaseSuite struct {
 	fixtures.Suite
 	Repository *Repository
+	Storer     storer.EncodedObjectStorer
 
-	backupProtocol transport.Transport
-	cache          map[string]*Repository
+	cache map[string]*Repository
 }
 
 func (s *BaseSuite) SetUpSuite(c *C) {
 	s.Suite.SetUpSuite(c)
+	s.installMockProtocol(c)
 	s.buildBasicRepository(c)
 
-	s.cache = make(map[string]*Repository)
-}
-
-func (s *BaseSuite) TearDownSuite(c *C) {
-	s.Suite.TearDownSuite(c)
+	s.cache = make(map[string]*Repository, 0)
 }
 
 func (s *BaseSuite) buildBasicRepository(c *C) {
 	f := fixtures.Basic().One()
 	s.Repository = s.NewRepository(f)
+	s.Storer = s.Repository.s
 }
 
-// NewRepository returns a new repository using the .git folder, if the fixture
-// is tagged as worktree the filesystem from fixture is used, otherwise a new
-// memfs filesystem is used as worktree.
 func (s *BaseSuite) NewRepository(f *fixtures.Fixture) *Repository {
-	var worktree, dotgit billy.Filesystem
-	if f.Is("worktree") {
-		r, err := PlainOpen(f.Worktree().Root())
-		if err != nil {
-			panic(err)
-		}
-
-		return r
-	}
-
-	dotgit = f.DotGit()
-	worktree = memfs.New()
-
-	st, err := filesystem.NewStorage(dotgit)
-	if err != nil {
-		panic(err)
-	}
-
-	r, err := Open(st, worktree)
+	r, err := NewFilesystemRepository(f.DotGit().Base())
 	if err != nil {
 		panic(err)
 	}
 
 	return r
-}
-
-// NewRepositoryWithEmptyWorktree returns a new repository using the .git folder
-// from the fixture but without a empty memfs worktree, the index and the
-// modules are deleted from the .git folder.
-func (s *BaseSuite) NewRepositoryWithEmptyWorktree(f *fixtures.Fixture) *Repository {
-	dotgit := f.DotGit()
-	err := dotgit.Remove("index")
-	if err != nil {
-		panic(err)
-	}
-
-	err = util.RemoveAll(dotgit, "modules")
-	if err != nil {
-		panic(err)
-	}
-
-	worktree := memfs.New()
-
-	st, err := filesystem.NewStorage(dotgit)
-	if err != nil {
-		panic(err)
-	}
-
-	r, err := Open(st, worktree)
-	if err != nil {
-		panic(err)
-	}
-
-	return r
-
 }
 
 func (s *BaseSuite) NewRepositoryFromPackfile(f *fixtures.Fixture) *Repository {
@@ -109,12 +51,13 @@ func (s *BaseSuite) NewRepositoryFromPackfile(f *fixtures.Fixture) *Repository {
 		return r
 	}
 
-	storer := memory.NewStorage()
+	r := NewMemoryRepository()
+
 	p := f.Packfile()
 	defer p.Close()
 
 	n := packfile.NewScanner(p)
-	d, err := packfile.NewDecoder(n, storer)
+	d, err := packfile.NewDecoder(n, r.s)
 	if err != nil {
 		panic(err)
 	}
@@ -124,15 +67,12 @@ func (s *BaseSuite) NewRepositoryFromPackfile(f *fixtures.Fixture) *Repository {
 		panic(err)
 	}
 
-	storer.SetReference(plumbing.NewHashReference(plumbing.HEAD, f.Head))
-
-	r, err := Open(storer, memfs.New())
-	if err != nil {
-		panic(err)
-	}
-
 	s.cache[h] = r
 	return r
+}
+
+func (s *BaseSuite) installMockProtocol(c *C) {
+	client.InstallProtocol("https", nil)
 }
 
 func (s *BaseSuite) GetBasicLocalRepositoryURL() string {
@@ -141,7 +81,8 @@ func (s *BaseSuite) GetBasicLocalRepositoryURL() string {
 }
 
 func (s *BaseSuite) GetLocalRepositoryURL(f *fixtures.Fixture) string {
-	return f.DotGit().Root()
+	path := f.DotGit().Base()
+	return fmt.Sprintf("file://%s", path)
 }
 
 type SuiteCommon struct{}
@@ -167,16 +108,5 @@ func (s *SuiteCommon) TestCountLines(c *C) {
 	for i, t := range countLinesTests {
 		o := countLines(t.i)
 		c.Assert(o, Equals, t.e, Commentf("subtest %d, input=%q", i, t.i))
-	}
-}
-
-func AssertReferences(c *C, r *Repository, expected map[string]string) {
-	for name, target := range expected {
-		expected := plumbing.NewReferenceFromStrings(name, target)
-
-		obtained, err := r.Reference(expected.Name(), true)
-		c.Assert(err, IsNil)
-
-		c.Assert(obtained, DeepEquals, expected)
 	}
 }

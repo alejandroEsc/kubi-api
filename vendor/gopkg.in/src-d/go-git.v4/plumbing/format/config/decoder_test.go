@@ -17,10 +17,7 @@ func (s *DecoderSuite) TestDecode(c *C) {
 		cfg := &Config{}
 		err := d.Decode(cfg)
 		c.Assert(err, IsNil, Commentf("decoder error for fixture: %d", idx))
-		buf := bytes.NewBuffer(nil)
-		e := NewEncoder(buf)
-		_ = e.Encode(cfg)
-		c.Assert(cfg, DeepEquals, fixture.Config, Commentf("bad result for fixture: %d, %s", idx, buf.String()))
+		c.Assert(cfg, DeepEquals, fixture.Config, Commentf("bad result for fixture: %d", idx))
 	}
 }
 

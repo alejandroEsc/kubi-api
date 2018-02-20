@@ -8,6 +8,8 @@ import (
 )
 
 var (
+	// ErrUnknownCapability is returned if a unknown capability is given
+	ErrUnknownCapability = errors.New("unknown capability")
 	// ErrArgumentsRequired is returned if no arguments are giving with a
 	// capability that requires arguments
 	ErrArgumentsRequired = errors.New("arguments required")
@@ -108,7 +110,7 @@ func (l *List) Add(c Capability, values ...string) error {
 		return nil
 	}
 
-	if known[c] && !multipleArgument[c] && len(l.m[c].Values) > 0 {
+	if !multipleArgument[c] && len(l.m[c].Values) > 0 {
 		return ErrMultipleArguments
 	}
 
@@ -116,19 +118,11 @@ func (l *List) Add(c Capability, values ...string) error {
 	return nil
 }
 
-func (l *List) validateNoEmptyArgs(values []string) error {
-	for _, v := range values {
-		if v == "" {
-			return ErrEmtpyArgument
-		}
-	}
-	return nil
-}
-
 func (l *List) validate(c Capability, values []string) error {
-	if !known[c] {
-		return l.validateNoEmptyArgs(values)
+	if _, ok := valid[c]; !ok {
+		return ErrUnknownCapability
 	}
+
 	if requiresArgument[c] && len(values) == 0 {
 		return ErrArgumentsRequired
 	}
@@ -140,7 +134,14 @@ func (l *List) validate(c Capability, values []string) error {
 	if !multipleArgument[c] && len(values) > 1 {
 		return ErrMultipleArguments
 	}
-	return l.validateNoEmptyArgs(values)
+
+	for _, v := range values {
+		if v == "" {
+			return ErrEmtpyArgument
+		}
+	}
+
+	return nil
 }
 
 // Supports returns true if capability is present
@@ -164,16 +165,6 @@ func (l *List) Delete(capability Capability) {
 		l.sort = append(l.sort[:i], l.sort[i+1:]...)
 		return
 	}
-}
-
-// All returns a slice with all defined capabilities.
-func (l *List) All() []Capability {
-	var cs []Capability
-	for _, key := range l.sort {
-		cs = append(cs, Capability(key))
-	}
-
-	return cs
 }
 
 // String generates the capabilities strings, the capabilities are sorted in

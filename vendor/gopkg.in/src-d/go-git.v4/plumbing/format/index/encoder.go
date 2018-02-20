@@ -6,7 +6,6 @@ import (
 	"errors"
 	"hash"
 	"io"
-	"sort"
 	"time"
 
 	"gopkg.in/src-d/go-git.v4/utils/binary"
@@ -62,10 +61,8 @@ func (e *Encoder) encodeHeader(idx *Index) error {
 }
 
 func (e *Encoder) encodeEntries(idx *Index) error {
-	sort.Sort(byName(idx.Entries))
-
 	for _, entry := range idx.Entries {
-		if err := e.encodeEntry(entry); err != nil {
+		if err := e.encodeEntry(&entry); err != nil {
 			return err
 		}
 
@@ -142,9 +139,3 @@ func (e *Encoder) padEntry(wrote int) error {
 func (e *Encoder) encodeFooter() error {
 	return binary.Write(e.w, e.hash.Sum(nil))
 }
-
-type byName []*Entry
-
-func (l byName) Len() int           { return len(l) }
-func (l byName) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-func (l byName) Less(i, j int) bool { return l[i].Name < l[j].Name }

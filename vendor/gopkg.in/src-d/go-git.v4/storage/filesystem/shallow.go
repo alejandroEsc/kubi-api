@@ -6,7 +6,6 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem/internal/dotgit"
-	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
 // ShallowStorage where the shallow commits are stored, an internal to
@@ -24,20 +23,20 @@ func (s *ShallowStorage) SetShallow(commits []plumbing.Hash) error {
 		return err
 	}
 
-	defer ioutil.CheckClose(f, &err)
+	defer f.Close()
 	for _, h := range commits {
-		if _, err := fmt.Fprintf(f, "%s\n", h); err != nil {
+		if _, err := fmt.Fprintf(f, "%s\n", h); err != err {
 			return err
 		}
 	}
 
-	return err
+	return nil
 }
 
 // Shallow return the shallow commits reading from shallo file from .git
 func (s *ShallowStorage) Shallow() ([]plumbing.Hash, error) {
 	f, err := s.dir.Shallow()
-	if f == nil || err != nil {
+	if err != nil {
 		return nil, err
 	}
 

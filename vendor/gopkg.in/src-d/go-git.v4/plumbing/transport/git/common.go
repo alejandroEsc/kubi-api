@@ -1,10 +1,11 @@
-// Package git implements the git transport protocol.
 package git
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
+	"strings"
 
 	"gopkg.in/src-d/go-git.v4/plumbing/format/pktline"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -12,23 +13,22 @@ import (
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
+var (
+	errAlreadyConnected = errors.New("tcp connection already connected")
+)
+
 // DefaultClient is the default git client.
 var DefaultClient = common.NewClient(&runner{})
-
-const DefaultPort = 9418
 
 type runner struct{}
 
 // Command returns a new Command for the given cmd in the given Endpoint
-func (r *runner) Command(cmd string, ep *transport.Endpoint, auth transport.AuthMethod) (common.Command, error) {
-	// auth not allowed since git protocol doesn't support authentication
-	if auth != nil {
-		return nil, transport.ErrInvalidAuthMethod
-	}
+func (r *runner) Command(cmd string, ep transport.Endpoint) (common.Command, error) {
 	c := &command{command: cmd, endpoint: ep}
 	if err := c.connect(); err != nil {
 		return nil, err
 	}
+
 	return c, nil
 }
 
@@ -36,7 +36,12 @@ type command struct {
 	conn      net.Conn
 	connected bool
 	command   string
-	endpoint  *transport.Endpoint
+	endpoint  transport.Endpoint
+}
+
+// SetAuth cannot be called since git protocol doesn't support authentication
+func (c *command) SetAuth(auth transport.AuthMethod) error {
+	return transport.ErrInvalidAuthMethod
 }
 
 // Start executes the command sending the required message to the TCP connection
@@ -49,7 +54,7 @@ func (c *command) Start() error {
 
 func (c *command) connect() error {
 	if c.connected {
-		return transport.ErrAlreadyConnected
+		return errAlreadyConnected
 	}
 
 	var err error
@@ -64,12 +69,11 @@ func (c *command) connect() error {
 
 func (c *command) getHostWithPort() string {
 	host := c.endpoint.Host
-	port := c.endpoint.Port
-	if port <= 0 {
-		port = DefaultPort
+	if strings.Index(c.endpoint.Host, ":") == -1 {
+		host += ":9418"
 	}
 
-	return fmt.Sprintf("%s:%d", host, port)
+	return host
 }
 
 // StderrPipe git protocol doesn't have any dedicated error channel
@@ -89,13 +93,13 @@ func (c *command) StdoutPipe() (io.Reader, error) {
 	return c.conn, nil
 }
 
-func endpointToCommand(cmd string, ep *transport.Endpoint) string {
-	host := ep.Host
-	if ep.Port != DefaultPort {
-		host = fmt.Sprintf("%s:%d", ep.Host, ep.Port)
-	}
+func endpointToCommand(cmd string, ep transport.Endpoint) string {
+	return fmt.Sprintf("%s %s%chost=%s%c", cmd, ep.Path, 0, ep.Host, 0)
+}
 
-	return fmt.Sprintf("%s %s%chost=%s%c", cmd, ep.Path, 0, host, 0)
+// Wait no-op function, required by the interface
+func (c *command) Wait() error {
+	return nil
 }
 
 // Close closes the TCP connection and connection.
