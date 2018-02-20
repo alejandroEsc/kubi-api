@@ -17,7 +17,6 @@ import (
 	"github.com/kris-nova/kubicorn/pkg/task"
 )
 
-
 // Kubicorn represents a kubicorn provider via library calls
 type Kubicorn struct {
 	providerOpts cl.ProviderOptions

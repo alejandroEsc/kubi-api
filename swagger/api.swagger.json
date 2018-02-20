@@ -1,0 +1,143 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/apply": {
+      "post": {
+        "operationId": "Apply",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterStatusMsg"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterDefinition"
+            }
+          }
+        ],
+        "tags": [
+          "ClusterCreator"
+        ]
+      }
+    },
+    "/v1/create": {
+      "post": {
+        "operationId": "Create",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterStatusMsg"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterDefinition"
+            }
+          }
+        ],
+        "tags": [
+          "ClusterCreator"
+        ]
+      }
+    },
+    "/v1/delete": {
+      "post": {
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterStatusMsg"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/clusterorClusterDefinition"
+            }
+          }
+        ],
+        "tags": [
+          "ClusterCreator"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "clusterorClusterConfigs": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "cloudProviderName": {
+          "type": "string"
+        }
+      }
+    },
+    "clusterorClusterDefinition": {
+      "type": "object",
+      "properties": {
+        "clusterProvider": {
+          "type": "string"
+        },
+        "clusterConfigs": {
+          "$ref": "#/definitions/clusterorClusterConfigs"
+        },
+        "autoFetchClusterProvider": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "providerStorePath": {
+          "type": "string"
+        },
+        "CloudID": {
+          "type": "string"
+        }
+      }
+    },
+    "clusterorClusterStatusMsg": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    }
+  }
+}

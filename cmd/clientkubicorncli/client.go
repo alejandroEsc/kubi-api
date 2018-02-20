@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"strings"
+
 	api "github.com/alejandroEsc/kubicorn-example-server/api"
 	pkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
-	"github.com/juju/loggo"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
+	"github.com/juju/loggo"
 	"google.golang.org/grpc"
-	"os"
 )
 
 var logger loggo.Logger

@@ -7,7 +7,6 @@ import (
 	"github.com/juju/loggo"
 )
 
-
 var (
 	logger = pr.GetModuleLogger("pkg.providers", loggo.INFO)
 )

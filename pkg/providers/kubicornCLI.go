@@ -7,8 +7,6 @@ import (
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 )
 
-
-
 // KubicornCLI represents a kubicorn provider via library calls
 type KubicornCLI struct {
 	providerOpts cl.ProviderOptions
@@ -73,7 +71,7 @@ func (k *KubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
 
 // Delete and destroy cluster and its resources
 func (k *KubicornCLI) Delete() (*clusteror.ClusterStatusMsg, error) {
-	defer  logger.Infof("done")
+	defer logger.Infof("done")
 
 	if k.status.Code > cl.Deleted.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Deleted.Msg)

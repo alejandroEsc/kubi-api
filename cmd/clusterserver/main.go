@@ -7,12 +7,12 @@ import (
 
 	s "github.com/alejandroEsc/kubicorn-example-server/internal/app/clusterserver"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
-	"golang.org/x/net/context"
 	"github.com/juju/loggo"
+	"golang.org/x/net/context"
 )
 
 func main() {
-	logger := cl.GetModuleLogger("cmd.clusterserver", loggo.INFO)
+	logger := cl.GetModuleLogger("cmd.restgateway", loggo.INFO)
 	ctx := context.Background()
 	_, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -23,8 +23,10 @@ func main() {
 	signal.Notify(gracefulStop, syscall.SIGINT, syscall.SIGTERM)
 
 	// Server Code
+	logger.Infof("starting server...")
 	err := s.Start(gracefulStop)
 	if err != nil {
 		logger.Criticalf("failed to start server: %s", err)
+		os.Exit(1)
 	}
 }

@@ -14,6 +14,7 @@ import (
 
 	"fmt"
 	"net"
+
 	"github.com/juju/loggo"
 )
 
@@ -82,7 +83,6 @@ func Start(gracefulStop chan os.Signal) error {
 
 	logLevel := ipkg.ParseLogLevel()
 	logger = cl.GetModuleLogger("internal.app.clusterserver", logLevel)
-
 
 	logger.Infof("starting server")
 
