@@ -17,3 +17,8 @@ type Provider interface {
 	Create() (*api.ClusterStatusMsg, error)
 	Delete() (*api.ClusterStatusMsg, error)
 }
+
+var (
+	Kubicorn    = "kubicorn"
+	KubicornCLI = "kubicornCLI"
+)

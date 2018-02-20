@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"os"
@@ -15,17 +14,20 @@ import (
 
 	"fmt"
 	"net"
+	"github.com/juju/loggo"
 )
 
 type clusterServer struct {
 	provider cl.Provider
 }
 
+var logger loggo.Logger
+
 func (s *clusterServer) Create(c context.Context, cd *api.ClusterDefinition) (*api.ClusterStatusMsg, error) {
 	var err error
 	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
+		logger.Errorf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
@@ -37,7 +39,7 @@ func (s *clusterServer) Apply(c context.Context, cd *api.ClusterDefinition) (*ap
 	var err error
 	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
+		logger.Errorf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
@@ -49,7 +51,7 @@ func (s *clusterServer) Delete(c context.Context, cd *api.ClusterDefinition) (*a
 	var err error
 	s.provider, err = s.getProviderParseOptions(cd)
 	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
+		logger.Errorf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
@@ -61,7 +63,7 @@ func (s *clusterServer) getProviderParseOptions(cd *api.ClusterDefinition) (cl.P
 
 	provider, err := prs.GetProvider(providerOpts, clusterOpts)
 	if err != nil {
-		log.Printf("error parsing cluster definition: %s", err)
+		logger.Errorf("error parsing cluster definition: %s", err)
 		return nil, err
 	}
 
@@ -78,7 +80,11 @@ func Start(gracefulStop chan os.Signal) error {
 	port, address := ipkg.ParseServerEnvVars()
 	addr := ipkg.FmtAddress(address, port)
 
-	log.Print("starting server")
+	logLevel := ipkg.ParseLogLevel()
+	logger = cl.GetModuleLogger("internal.app.clusterserver", logLevel)
+
+
+	logger.Infof("starting server")
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -93,15 +99,15 @@ func Start(gracefulStop chan os.Signal) error {
 	// Chance here to gracefully handle being stopped.
 	go func() {
 		sig := <-gracefulStop
-		log.Printf("caught sig: %+v", sig)
-		log.Println("waiting for 2 second to finish processing")
+		logger.Infof("caught sig: %+v", sig)
+		logger.Infof("waiting for 2 second to finish processing")
 		time.Sleep(2 * time.Second)
 		grpcServer.Stop()
-		log.Print("server terminated")
+		logger.Infof("server terminated")
 		os.Exit(0)
 	}()
 
-	log.Printf("attempting to start server in address: %s", addr)
+	logger.Infof("attempting to start server in address: %s", addr)
 
 	return grpcServer.Serve(listener)
 }

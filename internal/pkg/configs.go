@@ -1,16 +1,21 @@
 package internalpkg
 
 import (
+	"github.com/juju/loggo"
 	"github.com/spf13/viper"
 )
 
 var (
+	logger = loggo.GetLogger("internal.pkg")
+
 	envPrefix                = "cluster_creator"
 	envServiceAddress        = "service_address"
 	envServicePort           = "service_port"
 	envGateWayServiceAddress = "gw_service_address"
 	envGateWayPort           = "gw_port"
 	envGateWaySwaggerDir     = "gw_swagger_dir"
+
+	envLogLevel = "log_level"
 
 	envClientStep             = "step"
 	envClientDestroyArtifacts = "destroy_artifacts"
@@ -21,6 +26,8 @@ var (
 	defaultGWPort       = 8502
 	defaultGWSwaggerDir = "swagger"
 	defaultClientStep   = "up"
+
+	defaultLogLevel = "info"
 )
 
 // InitEnvVars allows you to initiate gathering environment variables
@@ -52,7 +59,11 @@ func InitEnvVars() error {
 		return err
 	}
 
-	err = viper.BindEnv(envClientDestroyArtifacts)
+	if err = viper.BindEnv(envClientDestroyArtifacts); err != nil {
+		return err
+	}
+
+	err = viper.BindEnv(envLogLevel)
 
 	return err
 }
@@ -106,4 +117,15 @@ func ParseGateWayEnvVars() (int, string) {
 	}
 
 	return gwPort, gwServiceAddress
+}
+
+func ParseLogLevel() loggo.Level {
+	logString := viper.GetString(envLogLevel)
+	logL, ok := loggo.ParseLevel(logString)
+
+	if !ok {
+		logL = loggo.INFO
+	}
+
+	return logL
 }

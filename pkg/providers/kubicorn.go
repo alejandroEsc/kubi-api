@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"log"
 	"strings"
 
 	"fmt"
@@ -17,6 +16,7 @@ import (
 	"github.com/kris-nova/kubicorn/pkg/local"
 	"github.com/kris-nova/kubicorn/pkg/task"
 )
+
 
 // Kubicorn represents a kubicorn provider via library calls
 type Kubicorn struct {
@@ -34,8 +34,8 @@ func NewKubicornProvider(p cl.ProviderOptions, c cl.ClusterOptions) *Kubicorn {
 
 // Apply commits state changes.
 func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
-	log.Printf("[applying] cluster %s ...", k.clusterOpts.Name)
-	defer log.Print("...done")
+	logger.Infof("[applying] cluster %s ...", k.clusterOpts.Name)
+	defer logger.Infof("...done")
 
 	if k.status.Code > cl.Applied.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Applied.Msg)
@@ -52,7 +52,7 @@ func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 	options.StateStorePath = kubi.ExpandPath(k.providerOpts.StorePath)
 	stateStoreObj, err := options.NewStateStore()
 	if err != nil {
-		log.Printf("error found to be: %s", err)
+		logger.Infof("error found to be: %s", err)
 		return nil, err
 	}
 
@@ -74,32 +74,32 @@ func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 
 	reconciler, err := pkg.GetReconciler(cluster, runtimeParams)
 	if err != nil {
-		log.Printf("error found to be: %s", err)
+		logger.Infof("error found to be: %s", err)
 		return nil, err
 	}
 
-	log.Printf("...getting expected")
+	logger.Infof("...getting expected")
 	expected, err := reconciler.Expected(cluster)
 	if err != nil {
-		log.Printf("error found to be: %s", err)
+		logger.Infof("error found to be: %s", err)
 		return nil, err
 	}
 
-	log.Printf("...getting actual")
+	logger.Infof("...getting actual")
 	actual, err := reconciler.Actual(cluster)
 	if err != nil {
-		log.Printf("error found to be: %s", err)
+		logger.Infof("error found to be: %s", err)
 		return nil, err
 	}
 
-	log.Printf("...reconciling actual with expected")
+	logger.Infof("...reconciling actual with expected")
 	reconciled, err := reconciler.Reconcile(actual, expected)
 	if err != nil {
-		log.Printf("error found to be: %s", err)
+		logger.Infof("error found to be: %s", err)
 		return nil, err
 	}
 
-	log.Print("...committing reconciliation")
+	logger.Infof("...committing reconciliation")
 	err = stateStoreObj.Commit(reconciled)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to commit state store: %v", err)
@@ -113,15 +113,15 @@ func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to write kubeconfig: %v", err)
 	}
 
-	log.Printf("The [%s] cluster has applied successfully!", reconciled.Name)
+	logger.Infof("The [%s] cluster has applied successfully!", reconciled.Name)
 	if path, ok := reconciled.Annotations[kubeconfig.ClusterAnnotationKubeconfigLocalFile]; ok {
 		path = local.Expand(path)
-		log.Println("To start using your cluster, you need to run")
-		log.Printf("  export KUBECONFIG=\"${KUBECONFIG}:%s\"", path)
+		logger.Infof("To start using your cluster, you need to run")
+		logger.Infof("  export KUBECONFIG=\"${KUBECONFIG}:%s\"", path)
 	}
-	log.Println("You can now `kubectl get nodes`")
+	logger.Infof("You can now `kubectl get nodes`")
 	privKeyPath := strings.Replace(cluster.SSH.PublicKeyPath, ".pub", "", 1)
-	log.Printf("You can SSH into your cluster ssh -i %s %s@%s", privKeyPath, reconciled.SSH.User, reconciled.KubernetesAPI.Endpoint)
+	logger.Infof("You can SSH into your cluster ssh -i %s %s@%s", privKeyPath, reconciled.SSH.User, reconciled.KubernetesAPI.Endpoint)
 
 	k.status = cl.Applied
 
@@ -130,8 +130,8 @@ func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 
 // Create new cluster if it does not exists, meaning creates supporting state files
 func (k *Kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
-	log.Printf("[creating] cluster %s ...", k.clusterOpts.Name)
-	defer log.Print("...done")
+	logger.Infof("[creating] cluster %s ...", k.clusterOpts.Name)
+	defer logger.Infof("...done")
 
 	if k.status.Code > cl.Created.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Created.Msg)
@@ -178,8 +178,8 @@ func (k *Kubicorn) Create() (*clusteror.ClusterStatusMsg, error) {
 
 // Delete and destroy cluster and its resources
 func (k *Kubicorn) Delete() (*clusteror.ClusterStatusMsg, error) {
-	log.Printf("[deleting] cluster %s ...", k.clusterOpts.Name)
-	defer log.Print("...done")
+	logger.Infof("[deleting] cluster %s ...", k.clusterOpts.Name)
+	defer logger.Infof("...done")
 
 	var err error
 	var acluster *cluster.Cluster

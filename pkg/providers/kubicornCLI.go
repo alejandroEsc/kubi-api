@@ -2,11 +2,12 @@ package providers
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/alejandroEsc/kubicorn-example-server/api"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 )
+
+
 
 // KubicornCLI represents a kubicorn provider via library calls
 type KubicornCLI struct {
@@ -38,7 +39,7 @@ func (k *KubicornCLI) Apply() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
-	commandString := fmt.Sprintf("kubicorn apply %s", k.clusterOpts.Name)
+	commandString := fmt.Sprintf("apply %s", k.clusterOpts.Name)
 	err := cl.RunCommandPrintOutput(commandString)
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func (k *KubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
-	commandString := fmt.Sprintf("kubicorn create %s --profile %s", k.clusterOpts.Name, k.clusterOpts.CloudProviderName)
+	commandString := fmt.Sprintf("create %s --profile %s", k.clusterOpts.Name, k.clusterOpts.CloudProviderName)
 	err := cl.RunCommandPrintOutput(commandString)
 	if err != nil {
 		return nil, err
@@ -72,6 +73,8 @@ func (k *KubicornCLI) Create() (*clusteror.ClusterStatusMsg, error) {
 
 // Delete and destroy cluster and its resources
 func (k *KubicornCLI) Delete() (*clusteror.ClusterStatusMsg, error) {
+	defer  logger.Infof("done")
+
 	if k.status.Code > cl.Deleted.Code {
 		return nil, fmt.Errorf(errorRevertState, k.status.Msg, cl.Deleted.Msg)
 	}
@@ -80,14 +83,13 @@ func (k *KubicornCLI) Delete() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf(errorReplayState, k.status.Msg)
 	}
 
-	commandString := fmt.Sprintf("kubicorn delete %s", k.clusterOpts.Name)
+	commandString := fmt.Sprintf("delete %s", k.clusterOpts.Name)
 	err := cl.RunCommandPrintOutput(commandString)
 	if err != nil {
 		return nil, err
 	}
 
 	k.status = cl.Deleted
-	log.Print("done")
 
 	return k.status.CreateClusterStatusMsg(), nil
 }

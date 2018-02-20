@@ -3,14 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
-
 	api "github.com/alejandroEsc/kubicorn-example-server/api"
 	pkg "github.com/alejandroEsc/kubicorn-example-server/internal/pkg"
+	"github.com/juju/loggo"
+
+	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 	"google.golang.org/grpc"
+	"os"
 )
+
+var logger loggo.Logger
 
 func createClusterDefinition() *api.ClusterDefinition {
 	name := "ae_kluster"
@@ -38,7 +42,7 @@ func runDoCreate(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	logger.Infof("reply message: %v", r)
 	return err
 }
 
@@ -48,7 +52,7 @@ func runDoApply(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	logger.Infof("reply message: %v", r)
 	return err
 }
 
@@ -58,29 +62,33 @@ func runDoDelete(client api.ClusterCreatorClient) error {
 		return err
 	}
 
-	log.Printf("reply message: %v", r)
+	logger.Infof("reply message: %v", r)
 	return err
 }
 
 func runCommandPrintOutput(cmd string) error {
-	log.Printf("attempting to run command: %s...", cmd)
+	logger.Infof("attempting to run command: %s...", cmd)
 	out, err := exec.Command("sh", "-c", cmd).Output()
-	log.Print(string(out))
+	logger.Infof(string(out))
 
 	if err != nil {
-		log.Printf("found error attempting command: %s", err)
+		logger.Infof("found error attempting command: %s", err)
 	}
 
-	log.Printf(".. done")
+	logger.Infof(".. done")
 	return err
 }
 
 func main() {
 	if err := pkg.InitEnvVars(); err != nil {
-		log.Fatalf("failed to init config vars: %s", err)
+		logger.Criticalf("failed to init config vars: %s", err)
+		os.Exit(1)
 	}
 
 	port, address := pkg.ParseServerEnvVars()
+
+	logLevel := pkg.ParseLogLevel()
+	logger = cl.GetModuleLogger("cmd.clientkubicorn", logLevel)
 
 	var opts []grpc.DialOption
 
@@ -90,32 +98,33 @@ func main() {
 
 	conn, err := grpc.Dial(pkg.FmtAddress(address, port), opts...)
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
+		logger.Criticalf("fail to dial: %v", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 	client := api.NewClusterCreatorClient(conn)
 
 	switch strings.ToLower(step) {
 	case "up":
-		log.Println("Bringing a cluster up")
+		logger.Infof("Bringing a cluster up")
 		err = runDoCreate(client)
 		if err != nil {
-			log.Printf("got an error message: %s", err)
+			logger.Errorf("got an error message: %s", err)
 		}
 
 		err = runDoApply(client)
 		if err != nil {
-			log.Printf("got an error message: %s", err)
+			logger.Errorf("got an error message: %s", err)
 		}
 
 	case "down":
-		log.Println("Deleting a cluster")
+		logger.Infof("Deleting a cluster")
 		err = runDoDelete(client)
 		if err != nil {
-			log.Printf("got an error message: %s", err)
+			logger.Errorf("got an error message: %s", err)
 		}
 	default:
-		log.Printf("the command %s is not a valid task.", step)
+		logger.Errorf("the command %s is not a valid task.", step)
 	}
 
 }
