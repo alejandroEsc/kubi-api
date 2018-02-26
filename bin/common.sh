@@ -22,7 +22,7 @@ function inf {
 }
 
 packages() {
-  echo "./cmd/clientkubicorn ./cmd/clientkubicorncli ./cmd/clusterserver ./internal/pkg ./internal/app/clusterserver ./internal/app/clusterserver/kubicornlib ./pkg/clusterlib ./pkg/providers"
+  echo "./cmd/clientkubicorn ./cmd/clientkubicorncli ./cmd/clusterserver ./internal/pkg ./internal/app/clusterserver ./pkg/clusterlib ./pkg/providers"
 }
 
 valid_go_files() {

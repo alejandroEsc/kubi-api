@@ -53,7 +53,7 @@ provider interface, namely:
 
 ```sbtshell
 type Provider interface {
-	Apply() (*api.ClusterStatusMsg, error) // should allow you to execute on cluster state, actual state should be reconciled.
+	Apply()  (*api.ClusterStatusMsg, error) // should allow you to execute on cluster state, actual state should be reconciled.
 	Create() (*api.ClusterStatusMsg, error) // create a default cluster config file, usually local.
 	Delete() (*api.ClusterStatusMsg, error) // delete a cluster, currently also destroys config file. 
 }

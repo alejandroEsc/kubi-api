@@ -19,6 +19,8 @@ type Provider interface {
 }
 
 var (
-	Kubicorn    = "kubicorn"
+	// Kubicorn is the name of kukicorn library provider
+	Kubicorn = "kubicorn"
+	// KubicornCLI is the name of the kubicorn cli provider
 	KubicornCLI = "kubicornCLI"
 )

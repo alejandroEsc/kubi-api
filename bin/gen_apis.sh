@@ -13,7 +13,7 @@ inf "generating api stubs..."
 inf "protoc -I ${my_dir}/..api/ ${my_dir}/..api/api.proto -I vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis -I vendor/github.com/grpc-ecosystem/grpc-gateway --go_out=plugins=grpc:${my_dir}/..api"
 protoc -I ${my_dir}/../api/ ${my_dir}/../api/api.proto -I vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis -I vendor/github.com/grpc-ecosystem/grpc-gateway --go_out=plugins=grpc:${my_dir}/../api
 
-#echo
+echo
 inf "generating REST gateway stubs..."
 inf "protoc -I /usr/local/include/ -I ${my_dir}/../api/ ${my_dir}/../api/api.proto -I vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis -I vendor/github.com/grpc-ecosystem/grpc-gateway --grpc-gateway_out=logtostderr=true:${my_dir}/../api"
 protoc -I /usr/local/include/ -I ${my_dir}/../api/ ${my_dir}/../api/api.proto -I vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis -I vendor/github.com/grpc-ecosystem/grpc-gateway --grpc-gateway_out=logtostderr=true:${my_dir}/../api

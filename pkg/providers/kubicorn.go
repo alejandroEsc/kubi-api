@@ -6,11 +6,10 @@ import (
 	"fmt"
 
 	"github.com/alejandroEsc/kubicorn-example-server/api"
-	kubi "github.com/alejandroEsc/kubicorn-example-server/internal/app/clusterserver/kubicornlib"
 	cl "github.com/alejandroEsc/kubicorn-example-server/pkg/clusterlib"
 	"github.com/kris-nova/kubicorn/apis/cluster"
 	"github.com/kris-nova/kubicorn/pkg"
-	"github.com/kris-nova/kubicorn/pkg/agent"
+	kubi "github.com/kris-nova/kubicorn/pkg/cli"
 	"github.com/kris-nova/kubicorn/pkg/initapi"
 	"github.com/kris-nova/kubicorn/pkg/kubeconfig"
 	"github.com/kris-nova/kubicorn/pkg/local"
@@ -104,10 +103,7 @@ func (k *Kubicorn) Apply() (*clusteror.ClusterStatusMsg, error) {
 		return nil, fmt.Errorf("Unable to commit state store: %v", err)
 	}
 
-	// Ensure we have SSH agent
-	agent := agent.NewAgent()
-
-	err = kubeconfig.RetryGetConfig(reconciled, agent)
+	err = kubeconfig.RetryGetConfig(reconciled)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to write kubeconfig: %v", err)
 	}

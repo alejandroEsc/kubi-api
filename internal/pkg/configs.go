@@ -119,6 +119,7 @@ func ParseGateWayEnvVars() (int, string) {
 	return gwPort, gwServiceAddress
 }
 
+// ParseLogLevel parses environment variables for log levels
 func ParseLogLevel() loggo.Level {
 	logString := viper.GetString(envLogLevel)
 	logL, ok := loggo.ParseLevel(logString)

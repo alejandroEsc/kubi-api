@@ -1,8 +1,9 @@
 package server
 
 import (
-	"context"
 	"time"
+
+	context "golang.org/x/net/context"
 
 	"os"
 

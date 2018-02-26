@@ -34,6 +34,7 @@ func serveSwagger(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, p)
 }
 
+// Start begins the process of bringing up a server
 func Start(gracefulStop chan os.Signal) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
